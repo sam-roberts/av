@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="themidibus1">
     <CLASSES>
-      <root url="jar://$USER_HOME$/Documents/Processing/libraries/themidibus/library/themidibus.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../Processing/libraries/themidibus/library/themidibus.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

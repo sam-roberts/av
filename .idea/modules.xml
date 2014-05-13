@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Processing_Synth_MIDI.iml" filepath="$PROJECT_DIR$/Processing_Synth_MIDI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/av.iml" filepath="$PROJECT_DIR$/av.iml" />
     </modules>
   </component>
 </project>
