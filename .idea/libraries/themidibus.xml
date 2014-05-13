@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="themidibus">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../../../Processing/libraries/themidibus/library/themidibus.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
