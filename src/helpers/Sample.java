@@ -1,5 +1,6 @@
 package helpers;
 
+import animations.ProcessingAnimation;
 import ddf.minim.AudioPlayer;
 
 /**
@@ -11,6 +12,8 @@ public class Sample implements Runnable{
     private boolean loop;
     PublicInformation info;
     private boolean running;
+
+    ProcessingAnimation animation = null;
 
     double length = Duration.QUARTER;
 
@@ -34,6 +37,10 @@ public class Sample implements Runnable{
             if (isLoop()) {
                 long durationMS = getDurationMS();
                 System.out.println("looping " + filepath + " sleeping for a  " + Duration.QUARTER + " note");
+
+                if (animation != null) {
+
+                }
                 try {
                     Thread.sleep(durationMS);
                 } catch (InterruptedException ex) {
@@ -80,5 +87,21 @@ public class Sample implements Runnable{
 
     public void setMyPlayer(AudioPlayer myPlayer) {
         this.myPlayer = myPlayer;
+    }
+
+    public ProcessingAnimation getAnimation() {
+        return animation;
+    }
+    public void playAnimation() {
+        if (this.animation.isKeyTriggered()) {
+            this.animation.killAnimation();
+
+        }
+        this.animation.setTriggered(true);
+        this.animation.setLoop(isLoop());
+        this.animation.setDuration(getDurationMS());
+    }
+    public void setAnimation(ProcessingAnimation animation) {
+        this.animation = animation;
     }
 }

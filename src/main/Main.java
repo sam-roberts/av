@@ -41,7 +41,7 @@ public class Main extends PApplet {
     Synths synths;
 
     int kickRadius;
-    ProcessingAnimation rotateVoice;
+    RotateVoiceInput rotateVoice;
     ProcessingAnimation polygonAnimation;
     public void setup() {
         minim = new Minim(this);
@@ -108,12 +108,15 @@ public class Main extends PApplet {
         rotateVoice = new RotateVoiceInput(this, info);
         polygonAnimation = new PolygonAnimation(this,info);
 
+
     }
 
     public void draw() {
         background(255);
+        rotateVoice.setLineIn(in);
 
         rotateVoice.draw();
+
 
         if (polygonAnimation.isKeyTriggered()) {
             polygonAnimation.drawTimed();
@@ -200,7 +203,7 @@ public class Main extends PApplet {
         //delay(200);
         //myBus.sendNoteOff(channel, pitch, velocity); // Send a Midi nodeOff
 
-        //myBus.sendControllerChange();
+        //myBus.sendControlzlerChange();
 
         int number = 0;
         int value = 90;
@@ -290,17 +293,8 @@ public class Main extends PApplet {
                 Sample thisSample = keyboardMap.getSampleOfKey(Character.toLowerCase(key));
                 if (thisSample != null) {
                     thisSample.setLoop(loopSample);
-
-                    if (polygonAnimation.isKeyTriggered()) {
-                        polygonAnimation.killAnimation();
-
-                    }
-                    polygonAnimation.setTriggered(true);
-                    polygonAnimation.setLoop(loopSample);
-                    polygonAnimation.setDuration(thisSample.getDurationMS());
-
-
-
+                    thisSample.setAnimation(polygonAnimation);
+                    thisSample.playAnimation();
 
                     (new Thread(thisSample)).start();
                 }
