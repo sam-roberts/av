@@ -1,8 +1,6 @@
 package main;
 
-import animations.PolygonAnimation;
-import animations.ProcessingAnimation;
-import animations.RotateVoiceInput;
+import animations.*;
 import ddf.minim.AudioInput;
 import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
@@ -13,6 +11,7 @@ import processing.core.PApplet;
 import themidibus.*; //Import the library
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,11 +42,15 @@ public class Main extends PApplet {
     int kickRadius;
     RotateVoiceInput rotateVoice;
     ProcessingAnimation polygonAnimation;
+    RotatePlayers rotatePlayers;
+
+    ArrayList<MovableBox> movables;
+    MovableBox dragTarget = null;
     public void setup() {
         minim = new Minim(this);
         myBus = new MidiBus(this, 0, 3); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
 
-        size(1024, 768, P2D);
+        size(1920, 1080, P2D);
         background(255);
         noStroke();
         smooth();
@@ -94,6 +97,7 @@ public class Main extends PApplet {
         // split each octave into three bands
         fft.logAverages(22, 12);
         rectMode(CORNERS);
+                
         in.enableMonitoring();
 
         kickRadius = width/(4);
@@ -107,20 +111,48 @@ public class Main extends PApplet {
         //ANIMTAIONS
         rotateVoice = new RotateVoiceInput(this, info);
         polygonAnimation = new PolygonAnimation(this,info);
+        rotatePlayers = new RotatePlayers(this,info);
 
-
+        movables = new ArrayList<MovableBox>();
+        MovableBox box1 = new MovableBox(this,info,getWidth()/2+50,getHeight()/2,25,25);
+        movables.add(box1);
     }
 
     public void draw() {
         background(255);
-        rotateVoice.setLineIn(in);
 
-        rotateVoice.draw();
+        rotatePlayers.play();
 
+        for (MovableBox box: movables) {
+            box.draw();
 
+            for (Rotater r: rotatePlayers.getRotators()) {
+                int l1x= r.getxOrigin();
+                int l1y = r.getyOrigin();
+
+                Point p2 = r.getSecondPoint();
+                int l2x = (int) p2.getX();
+                int l2y = (int) p2.getY();
+
+                int p1x = box.getxLocation();
+                int p1y = box.getyLocation();
+
+                int size = box.getWidth();
+                if (CollisionManager.isLineInsideCircle(l1x,l1y,l2x,l2y,p1x,p1y,size)) {
+                    box.setHit(true);
+
+                } else {
+                    box.setHit(false);
+                }
+            }
+        }
         if (polygonAnimation.isKeyTriggered()) {
             polygonAnimation.drawTimed();
         }
+
+
+
+
 
         //fill(Color.white.getRGB(), 30);
         //rect(0,0,width,height);
@@ -344,6 +376,41 @@ public class Main extends PApplet {
             loopSample = false;
         }
         //myBus.sendNoteOff(3,32,128);
+
+    }
+    public void mousePressed() {
+        for (MovableBox m: movables) {
+            if (getMousePosition().distance(new Point(m.getxLocation(),m.getyLocation())) < m.getWidth()) {
+                m.pressed();
+                dragTarget = m;
+                break;
+            }
+        }
+    }
+    public void mouseReleased() {
+        dragTarget = null;
+        for (MovableBox m: movables) {
+            if (getMousePosition() != null) {
+                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                    m.release();
+                }
+            }
+        }
+    }
+
+    public void mouseDragged() {
+        for (MovableBox m: movables) {
+            if (getMousePosition() != null) {
+                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                    break;
+                }
+            }
+        }
+        if (dragTarget != null && getMousePosition() != null) {
+            dragTarget.setxLocation((int)getMousePosition().getX());
+            dragTarget.setyLocation((int)getMousePosition().getY());
+
+        }
 
     }
 }

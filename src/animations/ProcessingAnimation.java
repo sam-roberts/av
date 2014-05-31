@@ -16,6 +16,15 @@ public abstract class ProcessingAnimation {
     int startTime;
     boolean hide = false;
     ColourManager colourManager;
+
+    public Color getFill() {
+        return fill;
+    }
+
+    public void setFill(Color fill) {
+        this.fill = fill;
+    }
+
     Color fill;
     float scale = 1.0f;
 
