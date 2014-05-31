@@ -21,4 +21,18 @@ public class ColourManager {
         return c;
 
     }
+
+    Color getRandomColor(int seed) {
+        //float hue = (seed + (0.618033988749895f * seed) % 1);
+
+        int numDigits = (int) (Math.log10(seed));
+
+        float factorTenDivide = (int) Math.pow(10, (numDigits+1));
+
+        float hue = 1 + (seed / factorTenDivide);
+        hue = (float) Math.pow(hue,5);
+        Color c = Color.getHSBColor(hue, 0.9f, 0.95f);
+        return c;
+
+    }
 }

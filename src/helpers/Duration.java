@@ -11,4 +11,6 @@ public class Duration {
     public final static double QUARTER = 4;
     public final static double EIGHTH = 8;
     public final static double SIXTEENTH = 16;
+
+
 }

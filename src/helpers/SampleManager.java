@@ -81,4 +81,8 @@ public class SampleManager {
         return allPaths;
     }
 
+    public Sample getMetronome() {
+        return files.get("metronome").get(0);
+    }
+
 }

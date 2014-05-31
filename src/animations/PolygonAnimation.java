@@ -31,7 +31,6 @@ public class PolygonAnimation extends ProcessingAnimation {
     protected void drawAnimation() {
         rotateDegrees += speed % 360;
 
-        System.out.println("Drawing a nice hexagon");
         Random rand = new Random();
         scale = (scale*(1+scale)) + 0.1f;
 
@@ -47,7 +46,6 @@ public class PolygonAnimation extends ProcessingAnimation {
         p.pushMatrix();
         PShape s = createPolygon(numSides,0, 0, size,0);
         s.scale(scale);
-        System.out.println("scale is " + scale);
         p.translate(p.getWidth()/2, p.getHeight()/2);
         //s.rotate(p.radians(rotateDegrees));
         p.shape(s,0,0);

@@ -3,16 +3,21 @@ package helpers;
 import animations.ProcessingAnimation;
 import ddf.minim.AudioPlayer;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by Sam on 5/04/2014.
  */
 public class Sample implements Runnable{
 
     String filepath;
+    String simpleFilename;
     private boolean loop;
     PublicInformation info;
     private boolean running;
 
+    int timeLastPlayed = 0;
     ProcessingAnimation animation = null;
 
     double length = Duration.QUARTER;
@@ -24,37 +29,56 @@ public class Sample implements Runnable{
 
         myPlayer = info.getMinim().loadFile(filepath);
 
+        String regex = "(\\w*)\\.\\w+$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher m = pattern.matcher(getFilepath());
+        if (m.find()) {
+            for (int i = 0; i < m.groupCount(); i++) {
+                simpleFilename = m.group(i);
+                simpleFilename = simpleFilename.replaceAll("_", " ");
+            }
+        }
+
     }
 
 
     @Override
     public void run() {
-        running = true;
+        if (! running) {
+            running=true;
+            do {
+                getMyPlayer().rewind();
+                getMyPlayer().play();
+                if (isLoop()) {
+                    long durationMS = getDurationMS();
+                    System.out.println("looping " + filepath + " sleeping for a  " + Duration.QUARTER + " note");
 
-        do {
-            getMyPlayer().rewind();
-            getMyPlayer().play();
-            if (isLoop()) {
-                long durationMS = getDurationMS();
-                System.out.println("looping " + filepath + " sleeping for a  " + Duration.QUARTER + " note");
+                    if (animation != null) {
 
-                if (animation != null) {
-
+                    }
+                    try {
+                        Thread.sleep(durationMS);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
-                try {
-                    Thread.sleep(durationMS);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
-            }
 
-        }while (isLoop() && running);
-
+            } while (isLoop() && running);
+            running=false;
+        }
     }
 
     public int getDurationMS () {
         return (int)(60/(float)(info.getTempo() * this.length)*4* 1000);
 
+    }
+
+    public int getTimeLastPlayed() {
+        return timeLastPlayed;
+    }
+
+    public void setTimeLastPlayed(int timeLastPlayed) {
+        this.timeLastPlayed = timeLastPlayed;
     }
 
     public String getFilepath() {
@@ -104,4 +128,9 @@ public class Sample implements Runnable{
     public void setAnimation(ProcessingAnimation animation) {
         this.animation = animation;
     }
+
+    public String getSimpleFilename() {
+        return simpleFilename;
+    }
+
 }

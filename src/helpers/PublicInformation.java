@@ -18,6 +18,7 @@ public class PublicInformation {
         return tempo;
     }
 
+
     public void setTempo(int tempo) {
         this.tempo = tempo;
     }

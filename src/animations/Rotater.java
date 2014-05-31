@@ -1,5 +1,6 @@
 package animations;
 
+import helpers.Duration;
 import helpers.PublicInformation;
 import processing.core.PApplet;
 
@@ -13,10 +14,10 @@ public class Rotater extends ProcessingAnimation{
     public static final int TYPE_LINEAR = 1;
     public static final int TYPE_ROTARY = 2;
     float rotateDegrees = 0;
-    float speed = 2;
+
+    double speed = Duration.QUARTER;
     private int length;
     int xOrigin = 0;
-
     public int getyOrigin() {
         return yOrigin;
     }
@@ -31,21 +32,49 @@ public class Rotater extends ProcessingAnimation{
         super(p, info);
     }
 
+    public int getWholeMeasureMs () {
+        return (int)(60/(float)(info.getTempo() * this.speed)*4* 1000) * 4;
+
+    }
     @Override
     protected void drawAnimation() {
+        int time = p.millis() % getWholeMeasureMs();
+
+        p.noFill();
+
         p.stroke(this.getFill().getRGB());
 
         p.strokeWeight(5);
-        rotateDegrees = (rotateDegrees + speed) % 360f;
+        //rotateDegrees = (rotateDegrees + 5) % 360f;
+        rotateDegrees = p.map(time, 0,getWholeMeasureMs(),0,360);
+
 
         p.pushMatrix();
         p.translate(getxOrigin(), getyOrigin());
+
         p.rotate(p.radians(rotateDegrees));
         p.line(0, 0 , getLength(),0);
 
         p.ellipse(0,0,getLength()*2,getLength()*2);
 
         p.popMatrix();
+
+        //draw the grid
+        p.pushMatrix();
+        p.translate(getxOrigin(), getyOrigin());
+        p.stroke(64, 64, 64, 30);
+
+        int nSegments = 8;
+        float degreePerSegment = 360/nSegments;
+
+        for (int i = 0; i < nSegments; i++) {
+            p.line(0,0,getLength(),0);
+            p.rotate((float) Math.toRadians(degreePerSegment));
+
+        }
+        p.popMatrix();
+
+
     }
 
     @Override

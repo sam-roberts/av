@@ -46,6 +46,8 @@ public class Main extends PApplet {
 
     ArrayList<MovableBox> movables;
     MovableBox dragTarget = null;
+
+    Sample metronome;
     public void setup() {
         minim = new Minim(this);
         myBus = new MidiBus(this, 0, 3); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
@@ -104,7 +106,7 @@ public class Main extends PApplet {
 
 
         synths = new Synths(info);
-        samples = new SampleManager(info, "D:\\Users\\Sam\\Documents\\Dropbox\\Uni\\Semester 1 2014\\SOMA3610 - Digital Portfolio\\Processing_Synth_MIDI\\src\\data\\sounds");
+        samples = new SampleManager(info, "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\sounds");
         keyboardMap = new KeyTriggerManager(samples);
 
 
@@ -115,10 +117,38 @@ public class Main extends PApplet {
 
         movables = new ArrayList<MovableBox>();
         MovableBox box1 = new MovableBox(this,info,getWidth()/2+50,getHeight()/2,25,25);
+        box1.setSound(keyboardMap.getSampleOfKey('i'));
+        MovableBox box2 = new MovableBox(this,info,getWidth()/2+100,getHeight()/2,25,25);
+        box2.setSound(keyboardMap.getSampleOfKey('i'));
+        MovableBox box3 = new MovableBox(this,info,getWidth()/2+150,getHeight()/2,25,25);
+        box3.setSound(keyboardMap.getSampleOfKey('i'));
+
+        MovableBox box4 = new MovableBox(this,info,getWidth()/2+150,getHeight()/2 + 100,25,25);
+        box4.setSound(keyboardMap.getSampleOfKey('a'));
+        MovableBox box5 = new MovableBox(this,info,getWidth()/2+150,getHeight()/2 - 100,25,25);
+        box5.setSound(keyboardMap.getSampleOfKey('p'));
+
         movables.add(box1);
+        movables.add(box2);
+        movables.add(box3);
+        movables.add(box4);
+        movables.add(box5);
+
+        metronome = samples.getMetronome();
+
+
+
     }
 
     public void draw() {
+
+        if (millis() % metronome.getDurationMS() < 20) {
+                metronome.setLoop(false);
+                metronome.setTimeLastPlayed(this.millis());
+                metronome.run();
+                System.out.println("metronome should be run every " + metronome.getDurationMS());
+
+        }
         background(255);
 
         rotatePlayers.play();
@@ -246,6 +276,12 @@ public class Main extends PApplet {
             rect(0, 0, 25, 25);
         }
 
+        boolean debug = true;
+        if (debug) {
+            float time = millis();
+            fill(Color.black.getRGB());
+            text("time is " + time + " / tempo is " + info.getTempo(), getWidth()/2, 20);
+        }
 
 
     }
@@ -380,10 +416,12 @@ public class Main extends PApplet {
     }
     public void mousePressed() {
         for (MovableBox m: movables) {
-            if (getMousePosition().distance(new Point(m.getxLocation(),m.getyLocation())) < m.getWidth()) {
-                m.pressed();
-                dragTarget = m;
-                break;
+            if (getMousePosition() != null) {
+                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                    m.pressed();
+                    dragTarget = m;
+                    break;
+                }
             }
         }
     }
