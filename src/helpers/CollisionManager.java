@@ -1,6 +1,8 @@
 package helpers;
 
+import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 
 /**
  * Created by Sam on 31/05/2014.
@@ -28,5 +30,21 @@ public class CollisionManager {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Distance from point 1 to point 2
+     * @param p1x
+     * @param p1y
+     * @param p2x
+     * @param p2y
+     * @return
+     */
+    public static double  distancePoints(int p1x, int p1y, int p2x, int p2y) {
+        Point2D p1 = new Point(p1x,p1y);
+        Point2D p2 = new Point(p1x,p1y);
+        return p1.distance(p2);
+
+
     }
 }

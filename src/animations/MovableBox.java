@@ -22,6 +22,7 @@ public class MovableBox extends ProcessingAnimation {
     Sample sound = null;
 
     boolean hit = false;
+    private int hitByRotor = 0;
 
     public int getWidth() {
         return width;
@@ -43,6 +44,8 @@ public class MovableBox extends ProcessingAnimation {
     int initialWidth;
     int initialHeight;
     Color initialFill;
+
+    Rotater hitBy = null;
     public MovableBox(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
         super(p, info);
         this.xLocation = xLocation;
@@ -59,6 +62,7 @@ public class MovableBox extends ProcessingAnimation {
 
     @Override
     protected void drawAnimation() {
+
         if (isHit()) {
             setFill(Color.red);
             pressed();
@@ -74,11 +78,25 @@ public class MovableBox extends ProcessingAnimation {
             setFill(initialFill);
             playsound = true;
         }
-        p.fill(getFill().getRGB());
+
+        if (getSound().getGain() < 0) {
+            //System.out.println("this shit has gain" + getSound().getGain());
+            //System.out.println("width was " + this.width);
+
+            this.opacity = (int) p.map(getSound().getGain(), -12,0,50,255);
+            this.width = (int) p.map(this.opacity, 50,255, this.width/2, this.width*2);
+            this.height = (int) p.map(this.opacity, 50,255, this.height/2, this.height*2);
+        } else {
+            this.opacity = 255;
+
+        }
+
+        p.fill(getFill().getRGB(), this.opacity);
         p.noStroke();
         p.pushMatrix();
         p.translate(xLocation, yLocation);
-        p.ellipse(0, 0, width, height);
+
+        p.ellipse(0, 0, this.width, this.height);
         p.popMatrix();
 
         if (sound.getSimpleFilename() != null) {
@@ -132,8 +150,18 @@ public class MovableBox extends ProcessingAnimation {
 
     }
 
-    public void setHit(boolean hit) {
+    public void setHit(boolean hit, Rotater r) {
         this.hit = hit;
+        this.hitBy = r;
+
+    }
+
+    public Rotater getHitBy() {
+        return hitBy;
+    }
+
+    public void setHitBy(Rotater hitBy) {
+        this.hitBy = hitBy;
     }
 
     public boolean isHit() {

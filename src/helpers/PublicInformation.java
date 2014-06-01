@@ -7,6 +7,8 @@ import themidibus.MidiBus;
  * Created by Sam on 5/04/2014.
  */
 public class PublicInformation {
+    public static final int TEMPO_MIN = 50;
+    public static final int TEMPO_MAX = 200;
 
     public int tempo;
     MidiBus midi;

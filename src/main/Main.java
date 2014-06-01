@@ -11,12 +11,15 @@ import processing.core.PApplet;
 import themidibus.*; //Import the library
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
 public class Main extends PApplet {
+
+
 
     MidiBus myBus; // The MidiBus
     Minim minim;
@@ -100,7 +103,7 @@ public class Main extends PApplet {
         fft.logAverages(22, 12);
         rectMode(CORNERS);
                 
-        in.enableMonitoring();
+        in.disableMonitoring();
 
         kickRadius = width/(4);
 
@@ -116,23 +119,28 @@ public class Main extends PApplet {
         rotatePlayers = new RotatePlayers(this,info);
 
         movables = new ArrayList<MovableBox>();
-        MovableBox box1 = new MovableBox(this,info,getWidth()/2+50,getHeight()/2,25,25);
-        box1.setSound(keyboardMap.getSampleOfKey('i'));
-        MovableBox box2 = new MovableBox(this,info,getWidth()/2+100,getHeight()/2,25,25);
-        box2.setSound(keyboardMap.getSampleOfKey('i'));
-        MovableBox box3 = new MovableBox(this,info,getWidth()/2+150,getHeight()/2,25,25);
-        box3.setSound(keyboardMap.getSampleOfKey('i'));
+        int sizePadding = 50;
+        int numVerticalMax = getHeight()/sizePadding;
+        int i = 0;
+        int row = 0;
+        for (Sample s: samples.getAllSamples()) {
+            if (i == numVerticalMax) {
+                row++;
+                i=0;
+            }
+            MovableBox temp = new MovableBox(this,info,sizePadding + row*sizePadding,i*sizePadding + sizePadding,25,25);
+            temp.setSound(s);
+            if (s.getSimpleFilename().equals("kick1.wav")) {
+                System.out.println("needs more kick");
+            }
+            movables.add(temp);
 
-        MovableBox box4 = new MovableBox(this,info,getWidth()/2+150,getHeight()/2 + 100,25,25);
-        box4.setSound(keyboardMap.getSampleOfKey('a'));
-        MovableBox box5 = new MovableBox(this,info,getWidth()/2+150,getHeight()/2 - 100,25,25);
-        box5.setSound(keyboardMap.getSampleOfKey('p'));
+            i++;
 
-        movables.add(box1);
-        movables.add(box2);
-        movables.add(box3);
-        movables.add(box4);
-        movables.add(box5);
+        }
+
+
+
 
         metronome = samples.getMetronome();
 
@@ -141,22 +149,37 @@ public class Main extends PApplet {
     }
 
     public void draw() {
-
-        if (millis() % metronome.getDurationMS() < 20) {
+        boolean isMetronome = false;
+        if (isMetronome) {
+            if (millis() % metronome.getDurationMS() < 20) {
                 metronome.setLoop(false);
                 metronome.setTimeLastPlayed(this.millis());
                 metronome.run();
                 System.out.println("metronome should be run every " + metronome.getDurationMS());
 
+            }
         }
         background(255);
 
         rotatePlayers.play();
 
         for (MovableBox box: movables) {
-            box.draw();
-
+            boolean isHit = false;
+            Rotater whichHit= null;
+            float nearestDistance = MAX_FLOAT;
+            Rotater closestRotater = null;
             for (Rotater r: rotatePlayers.getRotators()) {
+
+/*
+                Point2D middleOfRotor = new Point(r.getxOrigin(), r.getyOrigin());
+                Point2D boxLocation = new Point(box.getxLocation(), box.getyLocation());
+                float distance = (float) middleOfRotor.distance(boxLocation);
+
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    closestRotater = r;
+                }
+*/
                 int l1x= r.getxOrigin();
                 int l1y = r.getyOrigin();
 
@@ -169,13 +192,53 @@ public class Main extends PApplet {
 
                 int size = box.getWidth();
                 if (CollisionManager.isLineInsideCircle(l1x,l1y,l2x,l2y,p1x,p1y,size)) {
-                    box.setHit(true);
+                    isHit = true;
+                    whichHit =r;
 
+                }
+
+            }
+            // first time this box has ever been hit
+            if (box.getHitBy() != null) {
+                System.out.println("first time this box has been hit by a rotor");
+
+
+                //we hit are in a new window
+                if (box.getHitBy() != whichHit) {
+                    box.setHit(isHit, whichHit);
                 } else {
-                    box.setHit(false);
+                    //make sure we aren't nulling the last hit by
+                    box.setHit(isHit, box.getHitBy());
+
+
+                }
+
+            } else {
+                //the box has never been touched
+                box.setHit(isHit, whichHit);
+            }
+            box.getSound().setGain(0.0f);
+
+/*
+            //move a box outside make sure it goes back to full volume
+            if (box.getHitBy() != null) {
+                float distance = (float) Point2D.distance(box.getHitBy().getxOrigin(), box.getHitBy().getyOrigin(), box.getxLocation(), box.getyLocation());
+                if (distance > box.getHitBy().getLength()) {
+                    box.setHit(false, null);
+                    box.getSound().setGain(0.0f);
                 }
             }
+*/
+
+
+
+            box.draw();
+
+
+
         }
+
+
         if (polygonAnimation.isKeyTriggered()) {
             polygonAnimation.drawTimed();
         }
@@ -188,7 +251,7 @@ public class Main extends PApplet {
         //rect(0,0,width,height);
 
         beatDetect.detect(in.mix);
-
+        /*
         if (beatDetect.isKick()) {
             System.out.println("kick detected");
             fill(Color.white.getRGB());
@@ -200,6 +263,7 @@ public class Main extends PApplet {
             fill(Color.red.getRGB());
             ellipse(width - (kickRadius/2 + 20),height/2,kickRadius,kickRadius);
         }
+        */
         //logarithmic visualiser
         //fill(255);
         // perform a forward FFT on the samples in jingle's mix buffer
@@ -225,7 +289,7 @@ public class Main extends PApplet {
                 }
                 // draw a rectangle for each average, multiply the value by 5 so we can see it better
                 pushMatrix();
-                translate(width / 2, height / 2);
+                translate(width / 2 + 600, height / 2 + 300);
                 float rotateDegree = map(i, 0, fft.avgSize(), 0, 380);
                 rotate((float) Math.toRadians(rotateDegree));
 
@@ -251,7 +315,7 @@ public class Main extends PApplet {
         stroke(strokeColour);
         strokeWeight(3);
         pushMatrix();
-        translate(width / 2, height / 2);
+        translate(width / 2 + 600, height / 2 + 300);
         ellipse(0, 0, maxHeight * 8, maxHeight * 8);
         ellipse(0,0,maxHeight*8,maxHeight*8);
         popMatrix();
@@ -394,14 +458,14 @@ public class Main extends PApplet {
     }
 
     private void tempoUp() {
-        if (info.getTempo() < 300) {
+        if (info.getTempo() < info.TEMPO_MAX) {
             myBus.sendControllerChange(0, 1, 50); // Send a controllerChange
             info.setTempo(info.getTempo() + 10);
         }
 
     }
     private void tempoDown() {
-        if (info.getTempo() > 50) {
+        if (info.getTempo() > info.TEMPO_MIN) {
             myBus.sendControllerChange(0, 2, 50); // Send a controllerChange
             info.setTempo(info.getTempo() - 10);
         }
@@ -447,6 +511,9 @@ public class Main extends PApplet {
         if (dragTarget != null && getMousePosition() != null) {
             dragTarget.setxLocation((int)getMousePosition().getX());
             dragTarget.setyLocation((int)getMousePosition().getY());
+
+
+
 
         }
 

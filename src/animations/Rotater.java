@@ -28,8 +28,10 @@ public class Rotater extends ProcessingAnimation{
 
     int yOrigin = 0;
 
-    public Rotater(PApplet p, PublicInformation info) {
+    public Rotater(PApplet p, PublicInformation info, double SPEED) {
         super(p, info);
+        this.speed = SPEED;
+        this.setFill(Color.green);
     }
 
     public int getWholeMeasureMs () {
@@ -41,6 +43,13 @@ public class Rotater extends ProcessingAnimation{
         int time = p.millis() % getWholeMeasureMs();
 
         p.noFill();
+
+
+        int musicPump = (int) p.map(info.getTempo(),info.TEMPO_MIN,info.TEMPO_MAX,0,255);
+
+
+        Color c = new Color(musicPump, 255-musicPump,150);
+        setFill(c);
 
         p.stroke(this.getFill().getRGB());
 

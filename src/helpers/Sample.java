@@ -21,7 +21,7 @@ public class Sample implements Runnable{
     ProcessingAnimation animation = null;
 
     double length = Duration.QUARTER;
-
+    float gain = 0.0f;
     AudioPlayer myPlayer;
     public Sample(PublicInformation info,String filepath) {
         this.filepath = filepath;
@@ -29,7 +29,7 @@ public class Sample implements Runnable{
 
         myPlayer = info.getMinim().loadFile(filepath);
 
-        String regex = "(\\w*)\\.\\w+$";
+        String regex = "(\\w*)\\.wav$";
         Pattern pattern = Pattern.compile(regex);
         Matcher m = pattern.matcher(getFilepath());
         if (m.find()) {
@@ -46,7 +46,9 @@ public class Sample implements Runnable{
     public void run() {
         if (! running) {
             running=true;
+            //System.out.println("gain is " + myPlayer.getGain());
             do {
+                getMyPlayer().setGain(gain);
                 getMyPlayer().rewind();
                 getMyPlayer().play();
                 if (isLoop()) {
@@ -54,7 +56,6 @@ public class Sample implements Runnable{
                     System.out.println("looping " + filepath + " sleeping for a  " + Duration.QUARTER + " note");
 
                     if (animation != null) {
-
                     }
                     try {
                         Thread.sleep(durationMS);
@@ -133,4 +134,11 @@ public class Sample implements Runnable{
         return simpleFilename;
     }
 
+    public float getGain() {
+        return gain;
+    }
+
+    public void setGain(float gain) {
+        this.gain = gain;
+    }
 }
