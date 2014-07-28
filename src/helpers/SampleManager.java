@@ -18,6 +18,7 @@ public class SampleManager {
 
     PublicInformation info;
     ArrayList<AudioPlayer> audioPlayers;
+    Sample newestSample;
 
     public SampleManager(PublicInformation info, String filepath) {
         this.filepath = filepath;
@@ -50,6 +51,17 @@ public class SampleManager {
         }
         return i;
     }
+
+    public void insertIndividualItem(String filepath) {
+        File f = new File(filepath);
+        File folderName = f.getParentFile();
+        if (f != null && folderName != null){
+            insertItem(f, folderName);
+        }  else {
+            System.out.println("Couldn't insert item");
+        }
+
+    }
     private void insertItem(File fileEntry, File folder) {
         Sample s = new Sample(info, fileEntry.getAbsolutePath());
 
@@ -62,6 +74,7 @@ public class SampleManager {
             list.add(s);
             files.put(folder.getName(), list);
         }
+        newestSample = s;
         audioPlayers.add(s.getMyPlayer());
 
     }
@@ -81,8 +94,21 @@ public class SampleManager {
         return allPaths;
     }
 
+    public Sample getNewestSample() {
+        return newestSample;
+    }
+
+
     public Sample getMetronome() {
         return files.get("metronome").get(0);
     }
 
+    public int getNumSamplesKey(String s) {
+        if (files.containsKey(s)) {
+            return files.get(s).size();
+        } else {
+            return 0;
+        }
+
+    }
 }

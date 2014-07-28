@@ -3,6 +3,7 @@ package main;
 import animations.*;
 import ddf.minim.AudioInput;
 import ddf.minim.AudioOutput;
+import ddf.minim.AudioRecorder;
 import ddf.minim.Minim;
 import ddf.minim.analysis.BeatDetect;
 import ddf.minim.analysis.FFT;
@@ -12,6 +13,7 @@ import themidibus.*; //Import the library
 
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,7 +22,7 @@ import java.util.concurrent.Executors;
 public class Main extends PApplet {
 
 
-
+    public final String DATA_PATH = "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\";
     MidiBus myBus; // The MidiBus
     Minim minim;
     FFT fft;
@@ -33,6 +35,7 @@ public class Main extends PApplet {
     KeyTriggerManager keyboardMap;
     AudioInput in;
     AudioOutput out;
+    AudioRecorder recorder;
 
     boolean loopSample = false;
 
@@ -49,9 +52,12 @@ public class Main extends PApplet {
 
     ArrayList<MovableBox> movables;
     MovableBox dragTarget = null;
+    VoiceRecordingManager voiceSampleList;
 
     Sample metronome;
     public void setup() {
+
+
         minim = new Minim(this);
         myBus = new MidiBus(this, 0, 3); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
 
@@ -66,6 +72,11 @@ public class Main extends PApplet {
         info.setMidi(myBus);
         info.setMinim(minim);
 
+        //clean up the jams
+        File recordDir = new File(DATA_PATH + "recorded\\");
+        for (File f: recordDir.listFiles()) {
+            f.delete();
+        }
 
 
         MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
@@ -87,7 +98,7 @@ public class Main extends PApplet {
 
         in = minim.getLineIn();
         out = minim.getLineOut();
-
+        //System.out.println("test current directory " + System.getProperty("user.dir"));
 
         // loop the file
         // create an FFT object that has a time-domain buffer the same size as jingle's sample buffer
@@ -109,7 +120,10 @@ public class Main extends PApplet {
 
 
         synths = new Synths(info);
-        samples = new SampleManager(info, "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\sounds");
+        samples = new SampleManager(info, DATA_PATH + "sounds");
+        //getClass().getClassLoader().getResource()
+        //samples = new SampleManager(info, "src\\data\\sounds");
+
         keyboardMap = new KeyTriggerManager(samples);
 
 
@@ -141,7 +155,7 @@ public class Main extends PApplet {
 
 
 
-
+        voiceSampleList = new VoiceRecordingManager();
         metronome = samples.getMetronome();
 
 
@@ -345,6 +359,15 @@ public class Main extends PApplet {
             float time = millis();
             fill(Color.black.getRGB());
             text("time is " + time + " / tempo is " + info.getTempo(), getWidth()/2, 20);
+
+            pushMatrix();
+            translate(getWidth()-200, 20);
+            if(recorder != null && recorder.isRecording()) {
+                text("recording", 0, 0);
+            } else {
+                text("not recording", 0, 0);
+            }
+            popMatrix();
         }
 
 
@@ -420,6 +443,35 @@ public class Main extends PApplet {
                     in.disableMonitoring();
                 } else {
                     in.enableMonitoring();
+                }
+            } else if (key == 'r' || key == 'R') {
+                int numRecordings = samples.getNumSamplesKey("recorded");
+                String voiceRecordingFilepath = DATA_PATH + "recorded\\test"+(numRecordings+1)+".wav";
+
+                //first time we create one
+                if (recorder == null) {
+                    recorder = minim.createRecorder(in,voiceRecordingFilepath);
+                }
+                if (recorder.isRecording()) {
+                    recorder.endRecord();
+                    recorder.save();
+                    recorder=null;
+
+
+                    //add to sample manager?
+                    System.out.println("samples before: " + samples.getNumSamples());
+                    samples.insertIndividualItem(voiceRecordingFilepath);
+                    System.out.println("samples after: " + samples.getNumSamples());
+
+                    //update movables
+                    MovableBox temp = new MovableBox(this,info,800,600,40,40);
+
+                    temp.setSound(samples.getNewestSample());
+
+                    movables.add(temp);
+                } else {
+                    recorder.beginRecord();
+
                 }
             } else {
                 Sample thisSample = keyboardMap.getSampleOfKey(Character.toLowerCase(key));
@@ -508,13 +560,23 @@ public class Main extends PApplet {
                 }
             }
         }
-        if (dragTarget != null && getMousePosition() != null) {
+        if (dragTarget != null && getMousePosition() != null && dragTarget.isMovable()) {
             dragTarget.setxLocation((int)getMousePosition().getX());
             dragTarget.setyLocation((int)getMousePosition().getY());
+        }
+    }
 
-
-
-
+    public void mouseMoved() {
+        MovableBox target = null;
+        for (MovableBox m: movables) {
+            if (getMousePosition() != null) {
+                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                    m.setHover(true);
+                    System.out.println("hovering on " + m.toString());
+                }else {
+                    m.setHover(false);
+                }
+            }
         }
 
     }

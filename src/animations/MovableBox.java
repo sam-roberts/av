@@ -23,6 +23,7 @@ public class MovableBox extends ProcessingAnimation {
 
     boolean hit = false;
     private int hitByRotor = 0;
+    private boolean hover;
 
     public int getWidth() {
         return width;
@@ -44,6 +45,7 @@ public class MovableBox extends ProcessingAnimation {
     int initialWidth;
     int initialHeight;
     Color initialFill;
+    boolean movable;
 
     Rotater hitBy = null;
     public MovableBox(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
@@ -56,6 +58,7 @@ public class MovableBox extends ProcessingAnimation {
         this.height = initialHeight;
         this.fill = this.colourManager.getRandomColor();
         initialFill = this.fill;
+        this.movable = true;
 
 
     }
@@ -75,7 +78,7 @@ public class MovableBox extends ProcessingAnimation {
 
         } else {
             release();
-            setFill(initialFill);
+            //setFill(initialFill);
             playsound = true;
         }
 
@@ -145,10 +148,11 @@ public class MovableBox extends ProcessingAnimation {
     public void setSound(Sample sound) {
         this.sound = sound;
         this.initialFill = colourManager.getRandomColor(sound.hashCode());
-        System.out.println("sound hashes" + sound.hashCode());
+        //System.out.println("sound hashes" + sound.hashCode());
 
 
     }
+
 
     public void setHit(boolean hit, Rotater r) {
         this.hit = hit;
@@ -166,5 +170,28 @@ public class MovableBox extends ProcessingAnimation {
 
     public boolean isHit() {
         return hit;
+    }
+
+    public boolean isMovable() {
+        return movable;
+    }
+
+    public void setMovable(boolean movable) {
+        this.movable = movable;
+    }
+
+    public void setHover(boolean hover) {
+        this.hover = hover;
+
+        if (isHover()) {
+            setFill(this.initialFill.brighter().brighter().brighter());
+        } else {
+            setFill(this.initialFill);
+        }
+        this.hover = hover;
+    }
+
+    public boolean isHover() {
+        return hover;
     }
 }
