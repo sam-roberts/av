@@ -21,8 +21,11 @@ import java.util.concurrent.Executors;
 
 public class Main extends PApplet {
 
+    //home
+    //public final String DATA_PATH = "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\";
 
-    public final String DATA_PATH = "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\";
+    //laptop
+    public final String DATA_PATH = "C:\\Users\\sam\\Documents\\GitHub\\av\\src\\data\\";
     MidiBus myBus; // The MidiBus
     Minim minim;
     FFT fft;
@@ -55,6 +58,9 @@ public class Main extends PApplet {
     VoiceRecordingManager voiceSampleList;
 
     Sample metronome;
+
+    RecordButton recordButton;
+
     public void setup() {
 
 
@@ -152,7 +158,10 @@ public class Main extends PApplet {
             i++;
 
         }
+        recordButton = new RecordButton(this,info,3*getWidth()/4,3*getHeight()/4,100,100);
+        recordButton.setMovable(false);
 
+        movables.add(recordButton);
 
 
         voiceSampleList = new VoiceRecordingManager();
@@ -176,7 +185,7 @@ public class Main extends PApplet {
         background(255);
 
         rotatePlayers.play();
-
+        recordButton.draw();
         for (MovableBox box: movables) {
             boolean isHit = false;
             Rotater whichHit= null;
@@ -231,7 +240,9 @@ public class Main extends PApplet {
                 //the box has never been touched
                 box.setHit(isHit, whichHit);
             }
-            box.getSound().setGain(0.0f);
+            if (box.getSound() != null) {
+                box.getSound().setGain(0.0f);
+            }
 
 /*
             //move a box outside make sure it goes back to full volume
