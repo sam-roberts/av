@@ -115,9 +115,9 @@ public class MovableBox extends ProcessingAnimation {
     }
 
     public void pressed() {
-        this.width = (int) (initialWidth*1.5);
-        this.height = (int) (initialWidth*1.5);
-        setFill(colourManager.getRandomColor());
+        this.width = (int) (initialWidth*0.75);
+        this.height = (int) (initialWidth*0.75);
+        //setFill(colourManager.getRandomColor());
     }
 
     public void release() {

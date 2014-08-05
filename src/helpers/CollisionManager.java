@@ -25,7 +25,7 @@ public class CollisionManager {
         //float distance = (float) (Math.abs(p1y - gradientLine*p1x - b) / Math.sqrt(Math.pow(gradientLine,2) + 1));
         double distance = Line2D.ptSegDist(l1x,l1y,l2x,l2y,p1x,p1y);
 
-        if (distance - circleRadius/2 < 1) {
+        if (distance - circleRadius/2 < 5) {
             return true;
         } else {
             return false;

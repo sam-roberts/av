@@ -15,6 +15,7 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.ListIterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -119,7 +120,7 @@ public class Main extends PApplet {
         // split each octave into three bands
         fft.logAverages(22, 12);
         rectMode(CORNERS);
-                
+
         in.disableMonitoring();
 
         kickRadius = width/(4);
@@ -512,7 +513,7 @@ public class Main extends PApplet {
                 synth.setLoop(loopSample);
 
 
-                    (new Thread(synth)).start();
+                (new Thread(synth)).start();
 
 
             }
@@ -554,11 +555,54 @@ public class Main extends PApplet {
     }
     public void mouseReleased() {
         dragTarget = null;
-        for (MovableBox m: movables) {
+        ListIterator<MovableBox> list = movables.listIterator();
+        while (list.hasNext()) {
+            System.out.println("yolo " + movables.size());
+            MovableBox m = list.next();
             if (getMousePosition() != null) {
                 if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
                     m.release();
+
+                    if (m.equals(recordButton)) {
+                        System.out.println("pressed record button");
+
+
+                        int numRecordings = samples.getNumSamplesKey("recorded");
+                        String voiceRecordingFilepath = DATA_PATH + "recorded\\test" + (numRecordings + 1) + ".wav";
+
+                        //first time we create one
+                        if (recorder == null) {
+                            recorder = minim.createRecorder(in, voiceRecordingFilepath);
+                        }
+                        if (recorder.isRecording()) {
+                            recorder.endRecord();
+                            recorder.save();
+                            recorder = null;
+
+
+                            //add to sample manager?
+                            System.out.println("samples before: " + samples.getNumSamples());
+                            samples.insertIndividualItem(voiceRecordingFilepath);
+                            System.out.println("samples after: " + samples.getNumSamples());
+
+                            //update movables
+                            MovableBox temp = new MovableBox(this, info, 800, 600, 40, 40);
+
+                            temp.setSound(samples.getNewestSample());
+
+                            movables.add(temp);
+                            recordButton.stopRecording();
+
+                        } else {
+                            recordButton.startRecording();
+
+                            recorder.beginRecord();
+
+                        }
+                    break;
+                    }
                 }
+            System.out.println("made it to the bottom");
             }
         }
     }
@@ -581,7 +625,7 @@ public class Main extends PApplet {
         MovableBox target = null;
         for (MovableBox m: movables) {
             if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()/2) {
                     m.setHover(true);
                     System.out.println("hovering on " + m.toString());
                 }else {
