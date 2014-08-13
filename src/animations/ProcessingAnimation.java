@@ -37,7 +37,7 @@ public abstract class ProcessingAnimation {
         this.info = info;
         startTime = -1;
         keyTriggered = false;
-        colourManager = new ColourManager();
+        colourManager = info.getColourManager();
         fill = Color.green;
     }
     public void draw() {

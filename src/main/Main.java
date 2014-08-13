@@ -44,7 +44,7 @@ public class Main extends PApplet {
     boolean loopSample = false;
 
     PublicInformation info;
-
+    ColourManager cm;
     ExecutorService es = Executors.newCachedThreadPool();
 
     Synths synths;
@@ -62,6 +62,8 @@ public class Main extends PApplet {
 
     RecordButton recordButton;
 
+
+    CountdownAnimation count;
     public void setup() {
 
 
@@ -78,6 +80,8 @@ public class Main extends PApplet {
         info.setTempo(120);
         info.setMidi(myBus);
         info.setMinim(minim);
+        cm = new ColourManager();
+        info.setColourManager(cm);
 
         //clean up the jams
         File recordDir = new File(DATA_PATH + "recorded\\");
@@ -169,7 +173,7 @@ public class Main extends PApplet {
         metronome = samples.getMetronome();
 
 
-
+        count = new CountdownAnimation(this, info);
     }
 
     public void draw() {
@@ -187,6 +191,9 @@ public class Main extends PApplet {
 
         rotatePlayers.play();
         recordButton.draw();
+
+        count.drawTimed();
+
         for (MovableBox box: movables) {
             boolean isHit = false;
             Rotater whichHit= null;
@@ -273,6 +280,8 @@ public class Main extends PApplet {
 
 
 
+
+
         //fill(Color.white.getRGB(), 30);
         //rect(0,0,width,height);
 
@@ -301,6 +310,7 @@ public class Main extends PApplet {
         int colourWidth = 255 / fft.avgSize();
         float maxHeight =0;
         noStroke();
+        /* PERFORMANCE REMOVE LATER
         for(int i = 0; i < fft.avgSize(); i++)
 
         {
@@ -360,7 +370,7 @@ public class Main extends PApplet {
         int number = 0;
         int value = 90;
 
-
+*/
         if (keyTemp) {
             fill(Color.RED.getRGB());
             rect(0, 0, 25, 25);
@@ -381,6 +391,8 @@ public class Main extends PApplet {
             }
             popMatrix();
         }
+
+
 
 
     }
@@ -625,7 +637,8 @@ public class Main extends PApplet {
         MovableBox target = null;
         for (MovableBox m: movables) {
             if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()/2) {
+                Point p = new Point(m.getxLocation(), m.getyLocation());
+                if (p != null && getMousePosition().distance(p) < m.getWidth()/2) {
                     m.setHover(true);
                     System.out.println("hovering on " + m.toString());
                 }else {

@@ -57,6 +57,7 @@ public class MovableBox extends ProcessingAnimation {
         this.width = initialWidth;
         this.height = initialHeight;
         this.fill = this.colourManager.getRandomColor();
+
         initialFill = this.fill;
         this.movable = true;
 
@@ -123,6 +124,7 @@ public class MovableBox extends ProcessingAnimation {
     public void release() {
         this.width = initialWidth;
         this.height = initialHeight;
+        this.fill = initialFill;
     }
     public int getxLocation() {
         return xLocation;
@@ -147,7 +149,10 @@ public class MovableBox extends ProcessingAnimation {
 
     public void setSound(Sample sound) {
         this.sound = sound;
-        this.initialFill = colourManager.getRandomColor(sound.hashCode());
+        if (sound.getCategory() != null) {
+            this.initialFill = colourManager.getRandomColor(sound.getCategory().hashCode());
+            System.out.println(sound.getCategory() + sound.getCategory().hashCode());
+        }
         //System.out.println("sound hashes" + sound.hashCode());
 
 

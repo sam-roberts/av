@@ -1,5 +1,6 @@
 package helpers;
 
+import animations.ColourManager;
 import ddf.minim.Minim;
 import themidibus.MidiBus;
 
@@ -13,6 +14,8 @@ public class PublicInformation {
     public int tempo;
     MidiBus midi;
     Minim minim;
+    private ColourManager colourManager;
+
     public PublicInformation() {
     }
 
@@ -39,5 +42,19 @@ public class PublicInformation {
 
     public void setMinim(Minim minim) {
         this.minim = minim;
+    }
+
+    public int getMsCount(double duration) {
+            return (int)(60/(float)(getTempo() * duration)*4* 1000) * 4;
+
+
+    }
+
+    public ColourManager getColourManager() {
+        return colourManager;
+    }
+
+    public void setColourManager(ColourManager colourManager) {
+        this.colourManager = colourManager;
     }
 }

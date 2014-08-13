@@ -64,7 +64,7 @@ public class SampleManager {
     }
     private void insertItem(File fileEntry, File folder) {
         Sample s = new Sample(info, fileEntry.getAbsolutePath());
-
+        s.setCategory(folder.getName());
         if (files.containsKey(folder.getName())) {
             ArrayList<Sample> list = files.get(folder.getName());
             list.add(s);

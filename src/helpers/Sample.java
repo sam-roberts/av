@@ -23,6 +23,8 @@ public class Sample implements Runnable{
     double length = Duration.QUARTER;
     float gain = 0.0f;
     AudioPlayer myPlayer;
+    private String category;
+
     public Sample(PublicInformation info,String filepath) {
         this.filepath = filepath;
         this.info = info;
@@ -140,5 +142,13 @@ public class Sample implements Runnable{
 
     public void setGain(float gain) {
         this.gain = gain;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getCategory() {
+        return category;
     }
 }

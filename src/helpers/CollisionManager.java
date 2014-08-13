@@ -9,7 +9,7 @@ import java.awt.geom.Point2D;
  */
 public class CollisionManager {
 
-
+    public static final int CUSHION = 10;
     public static boolean isLineInsideCircle(int l1x, int l1y, int l2x, int l2y, int p1x, int p1y, int circleRadius) {
         //y = mx + b
         float gradientLine = Float.MAX_VALUE;
@@ -25,7 +25,7 @@ public class CollisionManager {
         //float distance = (float) (Math.abs(p1y - gradientLine*p1x - b) / Math.sqrt(Math.pow(gradientLine,2) + 1));
         double distance = Line2D.ptSegDist(l1x,l1y,l2x,l2y,p1x,p1y);
 
-        if (distance - circleRadius/2 < 5) {
+        if (distance - circleRadius/2 < CUSHION) {
             return true;
         } else {
             return false;
