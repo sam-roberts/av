@@ -49,12 +49,11 @@ public class ColourManager {
         if (seedMap.containsKey(seed)) {
             return colours.get(seedMap.get(seed));
         } else {
-            seedMap.put(seed, numUsed);
-            numUsed++;
-
-            if (numUsed > colours.size()) {
+            if (numUsed + 1 > colours.size()) {
                 numUsed = 0;
             }
+            seedMap.put(seed, numUsed);
+            numUsed++;
 
             return colours.get(seedMap.get(seed));
         }

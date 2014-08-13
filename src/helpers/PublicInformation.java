@@ -57,4 +57,9 @@ public class PublicInformation {
     public void setColourManager(ColourManager colourManager) {
         this.colourManager = colourManager;
     }
+
+    public int getDurationMS (double DURATION) {
+        return (int)(60/(float)(getTempo() * DURATION)*4* 1000);
+
+    }
 }

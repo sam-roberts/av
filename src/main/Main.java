@@ -23,10 +23,10 @@ import java.util.concurrent.Executors;
 public class Main extends PApplet {
 
     //home
-    //public final String DATA_PATH = "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\";
+    public final String DATA_PATH = "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\";
 
     //laptop
-    public final String DATA_PATH = "C:\\Users\\sam\\Documents\\GitHub\\av\\src\\data\\";
+    //public final String DATA_PATH = "C:\\Users\\sam\\Documents\\GitHub\\av\\src\\data\\";
     MidiBus myBus; // The MidiBus
     Minim minim;
     FFT fft;
@@ -61,6 +61,8 @@ public class Main extends PApplet {
     Sample metronome;
 
     RecordButton recordButton;
+
+    BeatCounterAnimation beatCount;
 
 
     CountdownAnimation count;
@@ -174,6 +176,7 @@ public class Main extends PApplet {
 
 
         count = new CountdownAnimation(this, info);
+        beatCount = new BeatCounterAnimation(this,info);
     }
 
     public void draw() {
@@ -193,6 +196,7 @@ public class Main extends PApplet {
         recordButton.draw();
 
         count.drawTimed();
+        beatCount.draw();
 
         for (MovableBox box: movables) {
             boolean isHit = false;
@@ -622,7 +626,9 @@ public class Main extends PApplet {
     public void mouseDragged() {
         for (MovableBox m: movables) {
             if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                Point p = new Point(m.getxLocation(), m.getyLocation());
+
+                if (p != null && getMousePosition().distance(p) < m.getWidth()) {
                     break;
                 }
             }
