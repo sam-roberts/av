@@ -35,12 +35,12 @@ public class Rotater extends ProcessingAnimation{
     }
 
     public int getWholeMeasureMs () {
-        return (int)(60/(float)(info.getTempo() * this.speed)*4* 1000) * 4;
+        return (int)(60/(float)(info.getTempo() * getSpeed())*4* 1000) * 4;
 
     }
     @Override
     protected void drawAnimation() {
-        int time = p.millis() % getWholeMeasureMs();
+        int time = p.millis()% getWholeMeasureMs();
 
         p.noFill();
 
@@ -61,7 +61,7 @@ public class Rotater extends ProcessingAnimation{
         p.pushMatrix();
         p.translate(getxOrigin(), getyOrigin());
 
-        p.rotate(p.radians(rotateDegrees));
+        p.rotate(p.radians(rotateDegrees-90));
         p.line(0, 0 , getLength(),0);
 
         p.ellipse(0,0,getLength()*2,getLength()*2);
@@ -108,5 +108,13 @@ public class Rotater extends ProcessingAnimation{
         int x = (int) (getxOrigin() + getLength() * Math.cos(Math.toRadians(this.rotateDegrees)));
         int y = (int) (getyOrigin() + getLength() * Math.sin(Math.toRadians(this.rotateDegrees)));
        return new Point(x,y);
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
     }
 }

@@ -22,6 +22,8 @@ import java.util.concurrent.Executors;
 
 public class Main extends PApplet {
 
+    public static final int LAG_COMPENSATION = 50;
+    public static final int AVERAGE_LAG_COMPENSATION = 0;
     //home
     public final String DATA_PATH = "D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\";
 
@@ -65,18 +67,22 @@ public class Main extends PApplet {
     BeatCounterAnimation beatCount;
 
 
+    ArrayList<MovableBox> activeSounds;
+
+
     CountdownAnimation count;
+
+
     public void setup() {
 
 
         minim = new Minim(this);
         myBus = new MidiBus(this, 0, 3); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
 
-        size(1920, 1080, P2D);
+        size(1920, 1080, P3D);
         background(255);
         noStroke();
         smooth();
-        frameRate(60);
         keyTemp = false;
         info = new PublicInformation();
         info.setTempo(120);
@@ -177,19 +183,18 @@ public class Main extends PApplet {
 
         count = new CountdownAnimation(this, info);
         beatCount = new BeatCounterAnimation(this,info);
+
+
+
+        activeSounds = new ArrayList<MovableBox>();
+
+
+
+
     }
 
     public void draw() {
-        boolean isMetronome = false;
-        if (isMetronome) {
-            if (millis() % metronome.getDurationMS() < 20) {
-                metronome.setLoop(false);
-                metronome.setTimeLastPlayed(this.millis());
-                metronome.run();
-                System.out.println("metronome should be run every " + metronome.getDurationMS());
 
-            }
-        }
         background(255);
 
         rotatePlayers.play();
@@ -199,85 +204,27 @@ public class Main extends PApplet {
         beatCount.draw();
 
         for (MovableBox box: movables) {
-            boolean isHit = false;
-            Rotater whichHit= null;
-            float nearestDistance = MAX_FLOAT;
-            Rotater closestRotater = null;
-            for (Rotater r: rotatePlayers.getRotators()) {
-
-/*
-                Point2D middleOfRotor = new Point(r.getxOrigin(), r.getyOrigin());
-                Point2D boxLocation = new Point(box.getxLocation(), box.getyLocation());
-                float distance = (float) middleOfRotor.distance(boxLocation);
-
-                if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    closestRotater = r;
-                }
-*/
-                int l1x= r.getxOrigin();
-                int l1y = r.getyOrigin();
-
-                Point p2 = r.getSecondPoint();
-                int l2x = (int) p2.getX();
-                int l2y = (int) p2.getY();
-
-                int p1x = box.getxLocation();
-                int p1y = box.getyLocation();
-
-                int size = box.getWidth();
-                if (CollisionManager.isLineInsideCircle(l1x,l1y,l2x,l2y,p1x,p1y,size)) {
-                    isHit = true;
-                    whichHit =r;
-
-                }
-
-            }
-            // first time this box has ever been hit
-            if (box.getHitBy() != null) {
-                System.out.println("first time this box has been hit by a rotor");
-
-
-                //we hit are in a new window
-                if (box.getHitBy() != whichHit) {
-                    box.setHit(isHit, whichHit);
-                } else {
-                    //make sure we aren't nulling the last hit by
-                    box.setHit(isHit, box.getHitBy());
-
-
-                }
-
-            } else {
-                //the box has never been touched
-                box.setHit(isHit, whichHit);
-            }
-            if (box.getSound() != null) {
-                box.getSound().setGain(0.0f);
-            }
-
-/*
-            //move a box outside make sure it goes back to full volume
-            if (box.getHitBy() != null) {
-                float distance = (float) Point2D.distance(box.getHitBy().getxOrigin(), box.getHitBy().getyOrigin(), box.getxLocation(), box.getyLocation());
-                if (distance > box.getHitBy().getLength()) {
-                    box.setHit(false, null);
-                    box.getSound().setGain(0.0f);
-                }
-            }
-*/
-
-
-
+            //doCollisionStuff(box);
             box.draw();
-
-
-
         }
 
 
         if (polygonAnimation.isKeyTriggered()) {
             polygonAnimation.drawTimed();
+        }
+
+        //System.out.println(activeSounds.size() + " active sounds");
+        for (MovableBox m: activeSounds) {
+            int playing = info.getDurationMS(m.getSound().getLength()) * 4;
+            int soundDelay =  m.getSound().getDelay()*4;
+            int currentTime = (millis() - AVERAGE_LAG_COMPENSATION) % playing;
+            int result = ((currentTime) % (playing)) - soundDelay;
+            if ((result < LAG_COMPENSATION || result > playing - LAG_COMPENSATION) && result >= 0) {
+                m.playsound();
+                //System.out.println("time is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
+            } else {
+                //System.out.println("MISSED is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
+            }
         }
 
 
@@ -289,7 +236,7 @@ public class Main extends PApplet {
         //fill(Color.white.getRGB(), 30);
         //rect(0,0,width,height);
 
-        beatDetect.detect(in.mix);
+        //beatDetect.detect(in.mix);
         /*
         if (beatDetect.isKick()) {
             System.out.println("kick detected");
@@ -384,7 +331,7 @@ public class Main extends PApplet {
         if (debug) {
             float time = millis();
             fill(Color.black.getRGB());
-            text("time is " + time + " / tempo is " + info.getTempo(), getWidth()/2, 20);
+            text("frame rate: " + frameRate + " time is " + time + " / tempo is " + info.getTempo(), getWidth()/2, 20);
 
             pushMatrix();
             translate(getWidth()-200, 20);
@@ -399,6 +346,76 @@ public class Main extends PApplet {
 
 
 
+    }
+
+    private void doCollisionStuff(MovableBox box) {
+        boolean isHit = false;
+        Rotater whichHit= null;
+        float nearestDistance = MAX_FLOAT;
+        Rotater closestRotater = null;
+        for (Rotater r: rotatePlayers.getRotators()) {
+
+/*
+            Point2D middleOfRotor = new Point(r.getxOrigin(), r.getyOrigin());
+            Point2D boxLocation = new Point(box.getxLocation(), box.getyLocation());
+            float distance = (float) middleOfRotor.distance(boxLocation);
+
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                closestRotater = r;
+            }
+*/
+            int l1x= r.getxOrigin();
+            int l1y = r.getyOrigin();
+
+            Point p2 = r.getSecondPoint();
+            int l2x = (int) p2.getX();
+            int l2y = (int) p2.getY();
+
+            int p1x = box.getxLocation();
+            int p1y = box.getyLocation();
+
+            int size = box.getWidth();
+            if (CollisionManager.isLineInsideCircle(l1x, l1y, l2x, l2y, p1x, p1y, size)) {
+                isHit = true;
+                whichHit =r;
+
+            }
+
+        }
+        // first time this box has ever been hit
+        if (box.getHitBy() != null) {
+            System.out.println("first time this box has been hit by a rotor");
+
+
+            //we hit are in a new window
+            if (box.getHitBy() != whichHit) {
+                box.setHit(isHit, whichHit);
+            } else {
+                //make sure we aren't nulling the last hit by
+                box.setHit(isHit, box.getHitBy());
+
+
+            }
+
+        } else {
+            //the box has never been touched
+            box.setHit(isHit, whichHit);
+        }
+        if (box.getSound() != null) {
+            box.getSound().setGain(0.0f);
+        }
+
+/*
+            //move a box outside make sure it goes back to full volume
+            if (box.getHitBy() != null) {
+                float distance = (float) Point2D.distance(box.getHitBy().getxOrigin(), box.getHitBy().getyOrigin(), box.getxLocation(), box.getyLocation());
+                if (distance > box.getHitBy().getLength()) {
+                    box.setHit(false, null);
+                    box.getSound().setGain(0.0f);
+                }
+            }
+*/
     }
 
     public void noteOn(int channel, int pitch, int velocity) {
@@ -573,11 +590,13 @@ public class Main extends PApplet {
         dragTarget = null;
         ListIterator<MovableBox> list = movables.listIterator();
         while (list.hasNext()) {
-            System.out.println("yolo " + movables.size());
+            //System.out.println("yolo " + movables.size());
             MovableBox m = list.next();
             if (getMousePosition() != null) {
                 if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
                     m.release();
+
+
 
                     if (m.equals(recordButton)) {
                         System.out.println("pressed record button");
@@ -618,33 +637,62 @@ public class Main extends PApplet {
                     break;
                     }
                 }
-            System.out.println("made it to the bottom");
+            //System.out.println("made it to the bottom");
             }
         }
     }
 
     public void mouseDragged() {
-        for (MovableBox m: movables) {
-            if (getMousePosition() != null) {
-                Point p = new Point(m.getxLocation(), m.getyLocation());
-
-                if (p != null && getMousePosition().distance(p) < m.getWidth()) {
-                    break;
+        if (dragTarget == null) {
+            for (MovableBox m : movables) {
+                if (getMousePosition() != null) {
+                    Point p = new Point(m.getxLocation(), m.getyLocation());
+                    //if we find the thing we are looking for break
+                    if (p != null && getMousePosition().distance(p) < m.getWidth()) {
+                        break;
+                    }
                 }
             }
         }
         if (dragTarget != null && getMousePosition() != null && dragTarget.isMovable()) {
             dragTarget.setxLocation((int)getMousePosition().getX());
             dragTarget.setyLocation((int)getMousePosition().getY());
+
+            for (Rotater r: rotatePlayers.getRotators()) {
+                if (CollisionManager.isPointInsideCircle(dragTarget,r)) {
+
+                    if (! activeSounds.contains(dragTarget)) {
+                        activeSounds.add(dragTarget);
+                    }
+
+                    dragTarget.setHit(true, r);
+                    dragTarget.getSound().setLength(r.getSpeed());
+
+                    double angleToCenter = CollisionManager.getAngle(dragTarget.getxLocation(), dragTarget.getyLocation(), r.getxOrigin(), r.getyOrigin());
+                    int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
+                    dragTarget.getSound().setDelay(soundDelay);
+
+                } else {
+                    if (dragTarget.isHit() && dragTarget.getHitBy() == r) {
+                        dragTarget.setHit(false, null);
+                        dragTarget.getSound().setLoop(false);
+                        if (activeSounds.contains(dragTarget)) {
+                            activeSounds.remove(dragTarget);
+                        }
+
+                    }
+                }
+            }
         }
     }
 
     public void mouseMoved() {
         MovableBox target = null;
         for (MovableBox m: movables) {
-            if (getMousePosition() != null) {
+            Point mousePosition = getMousePosition();
+            if (mousePosition != null) {
                 Point p = new Point(m.getxLocation(), m.getyLocation());
-                if (p != null && getMousePosition().distance(p) < m.getWidth()/2) {
+                if (p != null && mousePosition.distance(p) < m.getWidth()/2) {
                     m.setHover(true);
                     System.out.println("hovering on " + m.toString());
                 }else {

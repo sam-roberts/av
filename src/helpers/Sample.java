@@ -24,11 +24,12 @@ public class Sample implements Runnable{
     float gain = 0.0f;
     AudioPlayer myPlayer;
     private String category;
+    private int delay;
 
     public Sample(PublicInformation info,String filepath) {
         this.filepath = filepath;
         this.info = info;
-
+        this.delay = 0;
         myPlayer = info.getMinim().loadFile(filepath);
 
         String regex = "(\\w*)\\.wav$";
@@ -50,12 +51,23 @@ public class Sample implements Runnable{
             running=true;
             //System.out.println("gain is " + myPlayer.getGain());
             do {
+                /*
+                if (delay > 0 ) {
+                    System.out.println("sample waiting " + delay + " ms ");
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                */
                 getMyPlayer().setGain(gain);
                 getMyPlayer().rewind();
                 getMyPlayer().play();
                 if (isLoop()) {
-                    long durationMS = getDurationMS();
-                    System.out.println("looping " + filepath + " sleeping for a  " + Duration.QUARTER + " note");
+                    long durationMS = (getDurationMS());
+
+                    System.out.println("looping " + filepath + " sleeping for a  " + length + " note");
 
                     if (animation != null) {
                     }
@@ -67,7 +79,17 @@ public class Sample implements Runnable{
                 }
 
             } while (isLoop() && running);
+
+            // prevent double playing
+            try {
+                Thread.sleep(info.getDurationMS(Duration.SIXTEENTH));
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+
             running=false;
+
+
         }
     }
 
@@ -150,5 +172,21 @@ public class Sample implements Runnable{
 
     public String getCategory() {
         return category;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    public void setDelay(int delay) {
+        this.delay = delay;
+    }
+
+    public int getDelay() {
+        return delay;
     }
 }

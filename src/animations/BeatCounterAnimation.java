@@ -10,6 +10,7 @@ import processing.core.PApplet;
 public class BeatCounterAnimation extends ProcessingAnimation {
 
     int numMeasures = 1;
+    int numQuarters = 1;
     int timer;
     public BeatCounterAnimation(PApplet p, PublicInformation info) {
         super(p, info);
@@ -22,13 +23,17 @@ public class BeatCounterAnimation extends ProcessingAnimation {
             timer = p.millis();
         }
         int wholeBarTime = info.getDurationMS(Duration.WHOLE);
-
+        double quarterTime = wholeBarTime/4;
+        if (p.millis() - timer >= quarterTime * numQuarters) {
+            numQuarters++;
+        }
         if ( p.millis() - timer >= wholeBarTime) {
             numMeasures++;
             timer = p.millis();
+            numQuarters=1;
         }
         p.fill(0);
-        p.text("new bar every " + wholeBarTime + " Number of whole measures: " + numMeasures, 800,800);
+        p.text("new bar every " + wholeBarTime + " Number of whole measures: " + numMeasures + " | " + numQuarters , 200,20);
     }
 
     @Override

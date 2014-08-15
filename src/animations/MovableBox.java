@@ -5,6 +5,8 @@ import helpers.Sample;
 import processing.core.PApplet;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +49,10 @@ public class MovableBox extends ProcessingAnimation {
     Color initialFill;
     boolean movable;
 
+    ArrayList<FadeAnimation> fadeAnimations;
+    ArrayList<FadeAnimation> toDeleteList;
+
+
     Rotater hitBy = null;
     public MovableBox(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
         super(p, info);
@@ -57,26 +63,33 @@ public class MovableBox extends ProcessingAnimation {
         this.width = initialWidth;
         this.height = initialHeight;
         this.fill = this.colourManager.getRandomColor();
-
         initialFill = this.fill;
         this.movable = true;
-
+        fadeAnimations = new ArrayList<FadeAnimation>();
+        toDeleteList =new ArrayList<FadeAnimation>();
 
     }
 
     @Override
     protected void drawAnimation() {
+        Iterator<FadeAnimation> it = fadeAnimations.iterator();
+        while (it.hasNext()) {
+            FadeAnimation f = it.next();
+            if (f.isStartAnimation()) {
+                f.drawAnimation();
+            } else {
+                toDeleteList.add(f);
+            }
+        }
+        for (FadeAnimation f: toDeleteList) {
+            fadeAnimations.remove(f);
+        }
+        toDeleteList.clear();
+
 
         if (isHit()) {
-            setFill(Color.red);
+            //setFill(Color.red);
             pressed();
-            if (playsound) {
-                getSound().setLoop(false);
-                (new Thread(getSound())).start();
-            }
-            playsound = false;
-
-
         } else {
             release();
             //setFill(initialFill);
@@ -95,7 +108,7 @@ public class MovableBox extends ProcessingAnimation {
 
         }
 
-        p.fill(getFill().getRGB(), this.opacity);
+        p.fill(getFill().getRGB());
         p.noStroke();
         p.pushMatrix();
         p.translate(xLocation, yLocation);
@@ -162,6 +175,23 @@ public class MovableBox extends ProcessingAnimation {
     public void setHit(boolean hit, Rotater r) {
         this.hit = hit;
         this.hitBy = r;
+
+    }
+
+    public void playsound() {
+            getSound().setLoop(false);
+
+            if (! getSound().isRunning()) {
+                FadeAnimation fadeAnimation = new FadeAnimation(this.p, this.info, this.getxLocation(), this.getyLocation(), getWidth());
+                fadeAnimation.setFill(this.getFill());
+                fadeAnimations.add(fadeAnimation);
+                new Thread(getSound()).start();
+
+
+
+            }
+
+        //playsound = false;
 
     }
 

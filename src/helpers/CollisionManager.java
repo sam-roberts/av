@@ -1,5 +1,9 @@
 package helpers;
 
+import animations.MovableBox;
+import animations.ProcessingAnimation;
+import animations.Rotater;
+
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -46,5 +50,27 @@ public class CollisionManager {
         return p1.distance(p2);
 
 
+    }
+
+    public static double getAngle(int p1x, int p1y, int p2x, int p2y) {
+
+        double angle = Math.toDegrees(Math.atan2(p2y - p1y, p2x - p1x));
+        angle = angle - 90;
+        if (angle < 0 ) {
+            angle += 360;
+        }
+        return ((angle) % 360);
+
+    }
+
+    public static boolean isPointInsideCircle(MovableBox point, Rotater circle) {
+        int xdistance = (int) Math.pow(point.getxLocation() - circle.getxOrigin(), 2);
+        int ydistance = (int) Math.pow(point.getyLocation() - circle.getyOrigin(), 2);
+        int radius = (int) Math.pow(circle.getLength(), 2);
+        if ( (xdistance + ydistance) < radius ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
