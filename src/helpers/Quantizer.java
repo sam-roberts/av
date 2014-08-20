@@ -9,6 +9,9 @@ public class Quantizer {
 
     public static int getDelay(double wholeMeasureMS, double frequency, double angle) {
         double ratio = angle/360;
+        if (ratio > 0.95) {
+            ratio = 0;
+        }
         int result = (int)(wholeMeasureMS * ratio / frequency);
         return result;
     }

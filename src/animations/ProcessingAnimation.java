@@ -17,6 +17,9 @@ public abstract class ProcessingAnimation {
     boolean hide = false;
     ColourManager colourManager;
 
+    private int hackyX;
+    private int hackyY;
+
     public Color getFill() {
         return fill;
     }
@@ -106,4 +109,21 @@ public abstract class ProcessingAnimation {
     public boolean isLoop() {
         return loop;
     }
+
+
+    public void setHackyPosition(int x, int y) {
+        this.hackyX = x;
+        this.hackyY = y;
+
+    }
+
+    public int getHackyY() {
+        return hackyY;
+    }
+
+
+    public int getHackyX() {
+        return hackyX;
+    }
+
 }

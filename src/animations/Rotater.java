@@ -42,7 +42,6 @@ public class Rotater extends ProcessingAnimation{
     protected void drawAnimation() {
         int time = p.millis()% getWholeMeasureMs();
 
-        p.noFill();
 
 
         int musicPump = (int) p.map(info.getTempo(),info.TEMPO_MIN,info.TEMPO_MAX,0,255);
@@ -51,27 +50,36 @@ public class Rotater extends ProcessingAnimation{
         Color c = new Color(musicPump, 255-musicPump,150);
         setFill(c);
 
-        p.stroke(this.getFill().getRGB());
 
         p.strokeWeight(5);
+
+        drawGrid();
+
         //rotateDegrees = (rotateDegrees + 5) % 360f;
         rotateDegrees = p.map(time, 0,getWholeMeasureMs(),0,360);
 
 
         p.pushMatrix();
-        p.translate(getxOrigin(), getyOrigin());
+        p.translate(getxOrigin(), getyOrigin(),0);
+        p.stroke(160);
 
         p.rotate(p.radians(rotateDegrees-90));
-        p.line(0, 0 , getLength(),0);
 
+        p.line(0, 0, getLength(), 0);
+        p.stroke(255);
+        p.fill(255);
         p.ellipse(0,0,getLength()*2,getLength()*2);
 
         p.popMatrix();
 
+
+    }
+
+    private void drawGrid() {
         //draw the grid
         p.pushMatrix();
         p.translate(getxOrigin(), getyOrigin());
-        p.stroke(64, 64, 64, 30);
+        p.stroke(235);
 
         int nSegments = 8;
         float degreePerSegment = 360/nSegments;
@@ -82,8 +90,6 @@ public class Rotater extends ProcessingAnimation{
 
         }
         p.popMatrix();
-
-
     }
 
     @Override

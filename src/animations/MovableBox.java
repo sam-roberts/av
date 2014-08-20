@@ -26,6 +26,7 @@ public class MovableBox extends ProcessingAnimation {
     boolean hit = false;
     private int hitByRotor = 0;
     private boolean hover;
+    private double angleToRotor;
 
     public int getWidth() {
         return width;
@@ -52,6 +53,8 @@ public class MovableBox extends ProcessingAnimation {
     ArrayList<FadeAnimation> fadeAnimations;
     ArrayList<FadeAnimation> toDeleteList;
 
+    ProcessingAnimation extraAnimation;
+
 
     Rotater hitBy = null;
     public MovableBox(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
@@ -67,6 +70,8 @@ public class MovableBox extends ProcessingAnimation {
         this.movable = true;
         fadeAnimations = new ArrayList<FadeAnimation>();
         toDeleteList =new ArrayList<FadeAnimation>();
+        angleToRotor = 0;
+
 
     }
 
@@ -109,14 +114,16 @@ public class MovableBox extends ProcessingAnimation {
         }
 
         p.fill(getFill().getRGB());
-        p.noStroke();
+        p.stroke(getFill().darker().getRGB());
+        p.strokeWeight(2);
         p.pushMatrix();
-        p.translate(xLocation, yLocation);
+        p.translate(xLocation, yLocation, 1);
 
         p.ellipse(0, 0, this.width, this.height);
         p.popMatrix();
 
         if (sound.getSimpleFilename() != null) {
+            p.fill(0);
             p.text(sound.getSimpleFilename(), xLocation,yLocation-20);
         }
 
@@ -137,7 +144,9 @@ public class MovableBox extends ProcessingAnimation {
     public void release() {
         this.width = initialWidth;
         this.height = initialHeight;
-        this.fill = initialFill;
+        if (! isHover()) {
+            this.fill = initialFill;
+        }
     }
     public int getxLocation() {
         return xLocation;
@@ -166,6 +175,9 @@ public class MovableBox extends ProcessingAnimation {
             this.initialFill = colourManager.getRandomColor(sound.getCategory().hashCode());
             System.out.println(sound.getCategory() + sound.getCategory().hashCode());
         }
+
+        extraAnimation = new fftAnimation(p, info, getSound());
+
         //System.out.println("sound hashes" + sound.hashCode());
 
 
@@ -219,7 +231,7 @@ public class MovableBox extends ProcessingAnimation {
         this.hover = hover;
 
         if (isHover()) {
-            setFill(this.initialFill.brighter().brighter().brighter());
+            setFill(this.initialFill.brighter().brighter());
         } else {
             setFill(this.initialFill);
         }
@@ -228,5 +240,21 @@ public class MovableBox extends ProcessingAnimation {
 
     public boolean isHover() {
         return hover;
+    }
+
+    public ProcessingAnimation getExtraAnimation() {
+        return extraAnimation;
+    }
+
+    public void setExtraAnimation(ProcessingAnimation extraAnimation) {
+        this.extraAnimation = extraAnimation;
+    }
+
+    public void setAngleToRotor(double angleToRotor) {
+        this.angleToRotor = angleToRotor;
+    }
+
+    public double getAngleToRotor() {
+        return angleToRotor;
     }
 }

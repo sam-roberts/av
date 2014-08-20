@@ -15,20 +15,27 @@ public class RotatePlayers {
 
     public RotatePlayers(PApplet p, PublicInformation info) {
         rotators = new ArrayList<Rotater>();
-        Rotater one = new Rotater(p, info, Duration.QUARTER);
-        one.setLength(270);
-        one.setOrigin(p.getWidth()/2, p.getHeight()/2);
+        Rotater one = new Rotater(p, info, Duration.HALF);
+        one.setLength(300);
+        one.setOrigin(p.getWidth()/2 -325, p.getHeight()/2+100);
+
+        Rotater quarter = new Rotater(p, info, Duration.QUARTER);
+        quarter.setLength(300);
+        quarter.setOrigin(p.getWidth()/2 + 325, p.getHeight()/2+100);
+
 
         Rotater two = new Rotater(p, info, Duration.EIGHTH);
         two.setLength(100);
-        two.setOrigin(p.getWidth()/2-300, p.getHeight()/2-300);
+        two.setOrigin(p.getWidth()/2-125, p.getHeight()/2-300);
 
         Rotater sixteenth = new Rotater(p, info, Duration.SIXTEENTH);
         sixteenth.setLength(100);
-        sixteenth.setOrigin(p.getWidth()/2+300, p.getHeight()/2-300);
+        sixteenth.setOrigin(p.getWidth()/2+125, p.getHeight()/2-300);
 
         rotators.add(one);
         rotators.add(two);
+        rotators.add(quarter);
+
         rotators.add(sixteenth);
 
 

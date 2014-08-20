@@ -171,7 +171,7 @@ public class Main extends PApplet {
             i++;
 
         }
-        recordButton = new RecordButton(this,info,3*getWidth()/4,3*getHeight()/4,100,100);
+        recordButton = new RecordButton(this,info,getWidth()-100,getHeight()/4,100,100);
         recordButton.setMovable(false);
 
         movables.add(recordButton);
@@ -195,7 +195,7 @@ public class Main extends PApplet {
 
     public void draw() {
 
-        background(255);
+        background(246,245,241);
 
         rotatePlayers.play();
         recordButton.draw();
@@ -225,31 +225,18 @@ public class Main extends PApplet {
             } else {
                 //System.out.println("MISSED is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
             }
+            m.getExtraAnimation().setFill(m.getFill());
+            m.getExtraAnimation().setHackyPosition(m.getxLocation(), m.getyLocation());
+
+            m.getExtraAnimation().draw();
         }
 
 
 
 
 
+    /*
 
-
-        //fill(Color.white.getRGB(), 30);
-        //rect(0,0,width,height);
-
-        //beatDetect.detect(in.mix);
-        /*
-        if (beatDetect.isKick()) {
-            System.out.println("kick detected");
-            fill(Color.white.getRGB());
-            ellipse(kickRadius/2 + 20,height/2,kickRadius,kickRadius);
-        }
-
-        if (beatDetect.isSnare()) {
-            System.out.println("snare detected");
-            fill(Color.red.getRGB());
-            ellipse(width - (kickRadius/2 + 20),height/2,kickRadius,kickRadius);
-        }
-        */
         //logarithmic visualiser
         //fill(255);
         // perform a forward FFT on the samples in jingle's mix buffer
@@ -261,7 +248,6 @@ public class Main extends PApplet {
         int colourWidth = 255 / fft.avgSize();
         float maxHeight =0;
         noStroke();
-        /* PERFORMANCE REMOVE LATER
         for(int i = 0; i < fft.avgSize(); i++)
 
         {
@@ -276,7 +262,7 @@ public class Main extends PApplet {
                 }
                 // draw a rectangle for each average, multiply the value by 5 so we can see it better
                 pushMatrix();
-                translate(width / 2 + 600, height / 2 + 300);
+                translate(width / 2 + 600, height / 2 + 300,1);
                 float rotateDegree = map(i, 0, fft.avgSize(), 0, 380);
                 rotate((float) Math.toRadians(rotateDegree));
 
@@ -307,7 +293,7 @@ public class Main extends PApplet {
         ellipse(0,0,maxHeight*8,maxHeight*8);
         popMatrix();
 
-
+*/
         int channel = 0;
         int pitch = 64;
         int velocity = 127;
@@ -321,7 +307,7 @@ public class Main extends PApplet {
         int number = 0;
         int value = 90;
 
-*/
+
         if (keyTemp) {
             fill(Color.RED.getRGB());
             rect(0, 0, 25, 25);
@@ -557,14 +543,33 @@ public class Main extends PApplet {
     private void tempoUp() {
         if (info.getTempo() < info.TEMPO_MAX) {
             myBus.sendControllerChange(0, 1, 50); // Send a controllerChange
-            info.setTempo(info.getTempo() + 10);
+            int oldTempo = info.getTempo();
+            info.setTempo(oldTempo + 10);
+            updateActiveDelays();
         }
 
     }
+
+    private void updateActiveDelays() {
+        for (MovableBox m: activeSounds) {
+            Rotater attached = m.getHitBy();
+            double angle = m.getAngleToRotor();
+            if (attached != null) {
+                int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), m.getHitBy().getSpeed(), m.getAngleToRotor());
+                m.getSound().setDelay(soundDelay);
+            } else {
+                throw new NullPointerException("active sound not attached to anything");
+            }
+        }
+    }
+
     private void tempoDown() {
         if (info.getTempo() > info.TEMPO_MIN) {
             myBus.sendControllerChange(0, 2, 50); // Send a controllerChange
-            info.setTempo(info.getTempo() - 10);
+            int oldTempo = info.getTempo();
+            info.setTempo(oldTempo - 10);
+            updateActiveDelays();
+
         }
     }
 
@@ -634,29 +639,30 @@ public class Main extends PApplet {
                             recorder.beginRecord();
 
                         }
-                    break;
+                        break;
                     }
                 }
-            //System.out.println("made it to the bottom");
+                //System.out.println("made it to the bottom");
             }
         }
     }
 
     public void mouseDragged() {
-        if (dragTarget == null) {
+        Point mousePos = getMousePosition();
+
+        if (dragTarget == null && mousePos != null) {
             for (MovableBox m : movables) {
-                if (getMousePosition() != null) {
-                    Point p = new Point(m.getxLocation(), m.getyLocation());
-                    //if we find the thing we are looking for break
-                    if (p != null && getMousePosition().distance(p) < m.getWidth()) {
-                        break;
-                    }
+                Point p = new Point(m.getxLocation(), m.getyLocation());
+                //if we find the thing we are looking for break
+                if (p != null && mousePos.distance(p) < m.getWidth()) {
+                    break;
+
                 }
             }
         }
-        if (dragTarget != null && getMousePosition() != null && dragTarget.isMovable()) {
-            dragTarget.setxLocation((int)getMousePosition().getX());
-            dragTarget.setyLocation((int)getMousePosition().getY());
+        if (dragTarget != null && mousePos != null && dragTarget.isMovable()) {
+            dragTarget.setxLocation((int)mousePos.getX());
+            dragTarget.setyLocation((int) mousePos.getY());
 
             for (Rotater r: rotatePlayers.getRotators()) {
                 if (CollisionManager.isPointInsideCircle(dragTarget,r)) {
@@ -669,6 +675,7 @@ public class Main extends PApplet {
                     dragTarget.getSound().setLength(r.getSpeed());
 
                     double angleToCenter = CollisionManager.getAngle(dragTarget.getxLocation(), dragTarget.getyLocation(), r.getxOrigin(), r.getyOrigin());
+                    dragTarget.setAngleToRotor(angleToCenter);
                     int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
                     dragTarget.getSound().setDelay(soundDelay);
 

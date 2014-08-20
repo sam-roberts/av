@@ -1,6 +1,8 @@
 package helpers;
 
 import animations.ProcessingAnimation;
+import ddf.minim.AudioEffect;
+import ddf.minim.AudioOutput;
 import ddf.minim.AudioPlayer;
 
 import java.util.regex.Matcher;
@@ -61,6 +63,7 @@ public class Sample implements Runnable{
                     }
                 }
                 */
+
                 getMyPlayer().setGain(gain);
                 getMyPlayer().rewind();
                 getMyPlayer().play();
