@@ -7,16 +7,14 @@ import processing.core.PApplet;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Sam on 31/05/2014.
  */
 public class MovableBox extends ProcessingAnimation {
 
-    int xLocation;
-    int yLocation;
+    float xLocation;
+    float yLocation;
     int width;
 
     boolean playsound = true;
@@ -55,9 +53,15 @@ public class MovableBox extends ProcessingAnimation {
 
     ProcessingAnimation extraAnimation;
 
+    float xAcceleration = 0;
+    float yAcceleration = 0;
+    boolean dragged = false;
+
+    final private float GRAVITY_THRESHOLD = 0.01f;
+
 
     Rotater hitBy = null;
-    public MovableBox(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
+    public MovableBox(PApplet p, PublicInformation info, float xLocation, float yLocation, int width, int height) {
         super(p, info);
         this.xLocation = xLocation;
         this.yLocation = yLocation;
@@ -77,6 +81,18 @@ public class MovableBox extends ProcessingAnimation {
 
     @Override
     protected void drawAnimation() {
+        applyGravity();
+
+        if (isHit()) {
+            applyGravity();
+
+        }
+            //gravity
+        if (! isDragged()) {
+            setxLocation((getxLocation() + getxAcceleration()));
+            setyLocation((getyLocation() + getyAcceleration()));
+        }
+
         Iterator<FadeAnimation> it = fadeAnimations.iterator();
         while (it.hasNext()) {
             FadeAnimation f = it.next();
@@ -117,16 +133,38 @@ public class MovableBox extends ProcessingAnimation {
         p.stroke(getFill().darker().getRGB());
         p.strokeWeight(2);
         p.pushMatrix();
-        p.translate(xLocation, yLocation, 1);
+        p.translate(getxLocation(), getyLocation(), 1);
 
         p.ellipse(0, 0, this.width, this.height);
         p.popMatrix();
 
         if (sound.getSimpleFilename() != null) {
             p.fill(0);
-            p.text(sound.getSimpleFilename(), xLocation,yLocation-20);
+            String text = sound.getSimpleFilename();
+            if (getxAcceleration() != 0.0f) {
+                text = text.concat("\nxAccel:" + getxAcceleration());
+            }
+            if (getyAcceleration() != 0.0f) {
+                text = text.concat("\nyAccel:" + getyAcceleration());
+            }
+            p.text(text, xLocation,yLocation-20);
         }
 
+
+    }
+
+    private void applyGravity() {
+        if (xAcceleration < GRAVITY_THRESHOLD  && xAcceleration > -GRAVITY_THRESHOLD) {
+            xAcceleration = 0.0f;
+        } else {
+            this.xAcceleration = (float) (this.getxAcceleration() / 1.5f);
+
+        }
+        if (yAcceleration < GRAVITY_THRESHOLD  && yAcceleration > -GRAVITY_THRESHOLD) {
+            yAcceleration = 0.0f;
+        } else {
+            this.yAcceleration = (float) (this.getyAcceleration() / 1.5f);
+        }
 
     }
 
@@ -148,19 +186,19 @@ public class MovableBox extends ProcessingAnimation {
             this.fill = initialFill;
         }
     }
-    public int getxLocation() {
+    public float getxLocation() {
         return xLocation;
     }
 
-    public void setxLocation(int xLocation) {
+    public void setxLocation(float xLocation) {
         this.xLocation = xLocation;
     }
 
-    public int getyLocation() {
+    public float getyLocation() {
         return yLocation;
     }
 
-    public void setyLocation(int yLocation) {
+    public void setyLocation(float yLocation) {
         this.yLocation = yLocation;
     }
 
@@ -256,5 +294,38 @@ public class MovableBox extends ProcessingAnimation {
 
     public double getAngleToRotor() {
         return angleToRotor;
+    }
+
+    public void overrideFill(Color c) {
+        this.initialFill = c;
+    }
+
+    public Color getInitialFill() {
+        return initialFill;
+    }
+
+    public float getxAcceleration() {
+        return xAcceleration;
+    }
+
+    public void setxAcceleration(float xAcceleration) {
+        this.xAcceleration = xAcceleration;
+    }
+
+    public float getyAcceleration() {
+        return yAcceleration;
+    }
+
+    public void setyAcceleration(float yAcceleration) {
+        this.yAcceleration = yAcceleration;
+    }
+
+
+    public boolean isDragged() {
+        return dragged;
+    }
+
+    public void setDragged(boolean dragged) {
+        this.dragged = dragged;
     }
 }

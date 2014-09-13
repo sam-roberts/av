@@ -34,6 +34,7 @@ public class Main extends PApplet {
     FFT fft;
     Boolean keyTemp;
 
+    DoubleClick doubleClick;
     BeatDetect beatDetect;
     BeatListener beatListener;
 
@@ -65,7 +66,7 @@ public class Main extends PApplet {
     RecordButton recordButton;
 
     BeatCounterAnimation beatCount;
-
+    LinkedAnimations links;
 
     ArrayList<MovableBox> activeSounds;
 
@@ -90,6 +91,7 @@ public class Main extends PApplet {
         info.setMinim(minim);
         cm = new ColourManager();
         info.setColourManager(cm);
+        doubleClick = new DoubleClick();
 
         //clean up the jams
         File recordDir = new File(DATA_PATH + "recorded\\");
@@ -187,6 +189,8 @@ public class Main extends PApplet {
 
 
         activeSounds = new ArrayList<MovableBox>();
+        links = new LinkedAnimations(this, info);
+
 
 
 
@@ -205,7 +209,11 @@ public class Main extends PApplet {
 
         for (MovableBox box: movables) {
             //doCollisionStuff(box);
+            if ((box.getxAcceleration() != 0 || box.getyAcceleration() !=0) && box.isDragged() == false) {
+                updateActiveSounds(box);
+            }
             box.draw();
+
         }
 
 
@@ -230,6 +238,8 @@ public class Main extends PApplet {
 
             m.getExtraAnimation().draw();
         }
+
+        links.draw();
 
 
 
@@ -351,15 +361,15 @@ public class Main extends PApplet {
                 closestRotater = r;
             }
 */
-            int l1x= r.getxOrigin();
-            int l1y = r.getyOrigin();
+            float l1x= r.getxOrigin();
+            float l1y = r.getyOrigin();
 
             Point p2 = r.getSecondPoint();
-            int l2x = (int) p2.getX();
-            int l2y = (int) p2.getY();
+            float l2x = (int) p2.getX();
+            float l2y = (int) p2.getY();
 
-            int p1x = box.getxLocation();
-            int p1y = box.getyLocation();
+            float p1x = box.getxLocation();
+            float p1y = box.getyLocation();
 
             int size = box.getWidth();
             if (CollisionManager.isLineInsideCircle(l1x, l1y, l2x, l2y, p1x, p1y, size)) {
@@ -583,22 +593,48 @@ public class Main extends PApplet {
     public void mousePressed() {
         for (MovableBox m: movables) {
             if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                if (getMousePosition().distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
                     m.pressed();
                     dragTarget = m;
                     break;
                 }
             }
         }
+        if (dragTarget != null) {
+            if (doubleClick.isDoubleClick(dragTarget, this.millis())) {
+                doubleClick.reset();
+                System.out.println("double click");
+
+                //TODO: add copy
+                MovableBox temp = new MovableBox(this,info,dragTarget.getxLocation() + 50,dragTarget.getyLocation() + 50,25,25);
+                Sample copy = dragTarget.getSound();
+
+                Sample newSound = new Sample(info, copy.getFilepath());
+
+                temp.setSound(newSound);
+                temp.overrideFill(dragTarget.getInitialFill());
+
+                movables.add(temp);
+                updateActiveSounds(temp);
+                links.addConnection(dragTarget, temp);
+
+            } else {
+                doubleClick.setClick(dragTarget, this.millis());
+            }
+        }
     }
     public void mouseReleased() {
-        dragTarget = null;
+        if (dragTarget != null) {
+            dragTarget.setDragged(false);
+            dragTarget = null;
+        }
+
         ListIterator<MovableBox> list = movables.listIterator();
         while (list.hasNext()) {
             //System.out.println("yolo " + movables.size());
             MovableBox m = list.next();
             if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                if (getMousePosition().distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
                     m.release();
 
 
@@ -631,6 +667,7 @@ public class Main extends PApplet {
                             temp.setSound(samples.getNewestSample());
 
                             movables.add(temp);
+                            updateActiveSounds(temp);
                             recordButton.stopRecording();
 
                         } else {
@@ -652,7 +689,7 @@ public class Main extends PApplet {
 
         if (dragTarget == null && mousePos != null) {
             for (MovableBox m : movables) {
-                Point p = new Point(m.getxLocation(), m.getyLocation());
+                Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
                 //if we find the thing we are looking for break
                 if (p != null && mousePos.distance(p) < m.getWidth()) {
                     break;
@@ -661,33 +698,46 @@ public class Main extends PApplet {
             }
         }
         if (dragTarget != null && mousePos != null && dragTarget.isMovable()) {
-            dragTarget.setxLocation((int)mousePos.getX());
-            dragTarget.setyLocation((int) mousePos.getY());
+            float xDistance = (float) (mousePos.getX() - dragTarget.getxLocation());
+            float yDistance = (float) (mousePos.getY() - dragTarget.getyLocation());
 
-            for (Rotater r: rotatePlayers.getRotators()) {
-                if (CollisionManager.isPointInsideCircle(dragTarget,r)) {
+            dragTarget.setxAcceleration(dragTarget.getxAcceleration() + xDistance);
+            dragTarget.setyAcceleration(dragTarget.getyAcceleration() + yDistance);
 
-                    if (! activeSounds.contains(dragTarget)) {
-                        activeSounds.add(dragTarget);
+            dragTarget.setxLocation((float)mousePos.getX());
+            dragTarget.setyLocation((float) mousePos.getY());
+            dragTarget.setDragged(true);
+
+
+
+            updateActiveSounds(dragTarget);
+        }
+    }
+
+    private void updateActiveSounds(MovableBox target) {
+        for (Rotater r: rotatePlayers.getRotators()) {
+            if (CollisionManager.isPointInsideCircle(target, r)) {
+
+                if (! activeSounds.contains(target)) {
+                    activeSounds.add(target);
+                }
+
+                target.setHit(true, r);
+                target.getSound().setLength(r.getSpeed());
+
+                double angleToCenter = CollisionManager.getAngle(target.getxLocation(), target.getyLocation(), r.getxOrigin(), r.getyOrigin());
+                target.setAngleToRotor(angleToCenter);
+                int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
+                target.getSound().setDelay(soundDelay);
+
+            } else {
+                if (target.isHit() && target.getHitBy() == r) {
+                    target.setHit(false, null);
+                    target.getSound().setLoop(false);
+                    if (activeSounds.contains(target)) {
+                        activeSounds.remove(target);
                     }
 
-                    dragTarget.setHit(true, r);
-                    dragTarget.getSound().setLength(r.getSpeed());
-
-                    double angleToCenter = CollisionManager.getAngle(dragTarget.getxLocation(), dragTarget.getyLocation(), r.getxOrigin(), r.getyOrigin());
-                    dragTarget.setAngleToRotor(angleToCenter);
-                    int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
-                    dragTarget.getSound().setDelay(soundDelay);
-
-                } else {
-                    if (dragTarget.isHit() && dragTarget.getHitBy() == r) {
-                        dragTarget.setHit(false, null);
-                        dragTarget.getSound().setLoop(false);
-                        if (activeSounds.contains(dragTarget)) {
-                            activeSounds.remove(dragTarget);
-                        }
-
-                    }
                 }
             }
         }
@@ -698,7 +748,7 @@ public class Main extends PApplet {
         for (MovableBox m: movables) {
             Point mousePosition = getMousePosition();
             if (mousePosition != null) {
-                Point p = new Point(m.getxLocation(), m.getyLocation());
+                Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
                 if (p != null && mousePosition.distance(p) < m.getWidth()/2) {
                     m.setHover(true);
                     System.out.println("hovering on " + m.toString());

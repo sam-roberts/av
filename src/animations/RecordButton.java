@@ -12,7 +12,7 @@ public class RecordButton extends MovableBox {
 
 
     boolean isRecording = false;
-    String text = "press me";
+    String text = "RECORD";
     public RecordButton(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
         super(p, info, xLocation, yLocation, width, height);
     }

@@ -14,7 +14,7 @@ import java.awt.geom.Point2D;
 public class CollisionManager {
 
     public static final int CUSHION = 10;
-    public static boolean isLineInsideCircle(int l1x, int l1y, int l2x, int l2y, int p1x, int p1y, int circleRadius) {
+    public static boolean isLineInsideCircle(float l1x, float l1y, float l2x, float l2y, float p1x, float p1y, int circleRadius) {
         //y = mx + b
         float gradientLine = Float.MAX_VALUE;
         if (l2x - l1x !=0) {
@@ -44,15 +44,15 @@ public class CollisionManager {
      * @param p2y
      * @return
      */
-    public static double  distancePoints(int p1x, int p1y, int p2x, int p2y) {
-        Point2D p1 = new Point(p1x,p1y);
-        Point2D p2 = new Point(p1x,p1y);
+    public static double  distancePoints(float p1x, float p1y, float p2x, float p2y) {
+        Point2D.Float p1 = new Point.Float(p1x,p1y);
+        Point2D.Float p2 = new Point2D.Float(p1x,p1y);
         return p1.distance(p2);
 
 
     }
 
-    public static double getAngle(int p1x, int p1y, int p2x, int p2y) {
+    public static double getAngle(float p1x, float p1y, float p2x, float p2y) {
 
         double angle = Math.toDegrees(Math.atan2(p2y - p1y, p2x - p1x));
         angle = angle - 90;
