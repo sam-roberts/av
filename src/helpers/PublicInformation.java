@@ -1,6 +1,7 @@
 package helpers;
 
 import animations.ColourManager;
+import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
 import themidibus.MidiBus;
 
@@ -15,6 +16,7 @@ public class PublicInformation {
     MidiBus midi;
     Minim minim;
     private ColourManager colourManager;
+    private AudioOutput audioOut;
 
     public PublicInformation() {
     }
@@ -61,5 +63,13 @@ public class PublicInformation {
     public int getDurationMS (double DURATION) {
         return (int)(60/(float)(getTempo() * DURATION)*4* 1000);
 
+    }
+
+    public void setAudioOut(AudioOutput audioOut) {
+        this.audioOut = audioOut;
+    }
+
+    public AudioOutput getAudioOut() {
+        return audioOut;
     }
 }

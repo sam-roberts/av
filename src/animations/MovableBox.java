@@ -25,6 +25,7 @@ public class MovableBox extends ProcessingAnimation {
     private int hitByRotor = 0;
     private boolean hover;
     private double angleToRotor;
+    private boolean clone;
 
     public int getWidth() {
         return width;
@@ -57,6 +58,9 @@ public class MovableBox extends ProcessingAnimation {
     float yAcceleration = 0;
     boolean dragged = false;
 
+    private float initialSpawnX;
+    private float initialSpawnY;
+
     final private float GRAVITY_THRESHOLD = 0.01f;
 
 
@@ -75,6 +79,10 @@ public class MovableBox extends ProcessingAnimation {
         fadeAnimations = new ArrayList<FadeAnimation>();
         toDeleteList =new ArrayList<FadeAnimation>();
         angleToRotor = 0;
+        this.clone = false;
+
+        this.initialSpawnX = xLocation;
+        this.initialSpawnY = yLocation;
 
 
     }
@@ -121,15 +129,16 @@ public class MovableBox extends ProcessingAnimation {
             //System.out.println("this shit has gain" + getSound().getGain());
             //System.out.println("width was " + this.width);
 
-            this.opacity = (int) p.map(getSound().getGain(), -12,0,50,255);
-            this.width = (int) p.map(this.opacity, 50,255, this.width/2, this.width*2);
-            this.height = (int) p.map(this.opacity, 50,255, this.height/2, this.height*2);
+            this.opacity = (int) p.map(getSound().getGain(), -24,0,10,255);
+            this.width = (int) p.map(this.opacity, 10,255, this.width, this.width*2.0f);
+            this.height = (int) p.map(this.opacity, 10,255, this.height, this.height*2.0f);
         } else {
             this.opacity = 255;
 
+
         }
 
-        p.fill(getFill().getRGB());
+        p.fill(getFill().getRGB(), this.opacity);
         p.stroke(getFill().darker().getRGB());
         p.strokeWeight(2);
         p.pushMatrix();
@@ -225,22 +234,26 @@ public class MovableBox extends ProcessingAnimation {
     public void setHit(boolean hit, Rotater r) {
         this.hit = hit;
         this.hitBy = r;
-
+        if (hit == false) {
+            this.width = initialWidth;
+            this.height = initialHeight;
+            this.getSound().setGain(0);
+        }
     }
 
     public void playsound() {
+        if (this.isVisible()) {
             getSound().setLoop(false);
 
-            if (! getSound().isRunning()) {
+            if (!getSound().isRunning()) {
                 FadeAnimation fadeAnimation = new FadeAnimation(this.p, this.info, this.getxLocation(), this.getyLocation(), getWidth());
                 fadeAnimation.setFill(this.getFill());
                 fadeAnimations.add(fadeAnimation);
                 new Thread(getSound()).start();
 
 
-
             }
-
+        }
         //playsound = false;
 
     }
@@ -327,5 +340,22 @@ public class MovableBox extends ProcessingAnimation {
 
     public void setDragged(boolean dragged) {
         this.dragged = dragged;
+    }
+
+
+    public void setClone(boolean clone) {
+        this.clone = clone;
+    }
+
+    public boolean isClone() {
+        return clone;
+    }
+
+    public float getInitialSpawnX() {
+        return initialSpawnX;
+    }
+
+    public float getInitialSpawnY() {
+        return initialSpawnY;
     }
 }

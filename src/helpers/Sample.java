@@ -28,12 +28,13 @@ public class Sample implements Runnable{
     private String category;
     private int delay;
 
+    boolean clone;
+
     public Sample(PublicInformation info,String filepath) {
         this.filepath = filepath;
         this.info = info;
         this.delay = 0;
         myPlayer = info.getMinim().loadFile(filepath);
-
         String regex = "(\\w*)\\.wav$";
         Pattern pattern = Pattern.compile(regex);
         Matcher m = pattern.matcher(getFilepath());
@@ -67,6 +68,8 @@ public class Sample implements Runnable{
                 getMyPlayer().setGain(gain);
                 getMyPlayer().rewind();
                 getMyPlayer().play();
+
+
                 if (isLoop()) {
                     long durationMS = (getDurationMS());
 

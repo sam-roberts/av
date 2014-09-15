@@ -80,7 +80,7 @@ public abstract class ProcessingAnimation {
     protected abstract void resetTimedAnimation();
 
     public boolean isVisible() {
-        return (opacity > 0 && !hide);
+        return (!hide);
     }
 
     public void setDuration(int duration) {
@@ -103,6 +103,9 @@ public abstract class ProcessingAnimation {
         resetTimedAnimation();
     }
 
+    public void setHide(boolean hide) {
+        this.hide = hide;
+    }
 
     public void setLoop(boolean loop) {
         this.loop = loop;

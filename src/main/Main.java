@@ -89,6 +89,8 @@ public class Main extends PApplet {
         info.setTempo(120);
         info.setMidi(myBus);
         info.setMinim(minim);
+        info.setAudioOut(out);
+
         cm = new ColourManager();
         info.setColourManager(cm);
         doubleClick = new DoubleClick();
@@ -209,7 +211,7 @@ public class Main extends PApplet {
 
         for (MovableBox box: movables) {
             //doCollisionStuff(box);
-            if ((box.getxAcceleration() != 0 || box.getyAcceleration() !=0) && box.isDragged() == false) {
+            if ((box.getxAcceleration() != 0 || box.getyAcceleration() !=0) && box.isDragged() == false && box.isVisible()) {
                 updateActiveSounds(box);
             }
             box.draw();
@@ -229,6 +231,7 @@ public class Main extends PApplet {
             int result = ((currentTime) % (playing)) - soundDelay;
             if ((result < LAG_COMPENSATION || result > playing - LAG_COMPENSATION) && result >= 0) {
                 m.playsound();
+                System.out.println("playing sound");
                 //System.out.println("time is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
             } else {
                 //System.out.println("MISSED is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
@@ -349,58 +352,42 @@ public class Main extends PApplet {
         Rotater whichHit= null;
         float nearestDistance = MAX_FLOAT;
         Rotater closestRotater = null;
+        float gain = 0.0f;
+
+        box.setHit(false, null);
         for (Rotater r: rotatePlayers.getRotators()) {
 
-/*
-            Point2D middleOfRotor = new Point(r.getxOrigin(), r.getyOrigin());
-            Point2D boxLocation = new Point(box.getxLocation(), box.getyLocation());
-            float distance = (float) middleOfRotor.distance(boxLocation);
+            //rotor center
 
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
-                closestRotater = r;
-            }
-*/
             float l1x= r.getxOrigin();
             float l1y = r.getyOrigin();
+            Point2D.Float p1 = new Point2D.Float(l1x,l1y);
 
+            //rotor outside
             Point p2 = r.getSecondPoint();
             float l2x = (int) p2.getX();
             float l2y = (int) p2.getY();
 
             float p1x = box.getxLocation();
             float p1y = box.getyLocation();
+            Point2D.Float boxPoint = new Point2D.Float(p1x, p1y);
 
             int size = box.getWidth();
             if (CollisionManager.isLineInsideCircle(l1x, l1y, l2x, l2y, p1x, p1y, size)) {
                 isHit = true;
                 whichHit =r;
+                box.setHit(true, r);
+
+                float distance = (float) Math.abs(p1.distance(boxPoint));
+
+
+                break;
 
             }
 
         }
-        // first time this box has ever been hit
-        if (box.getHitBy() != null) {
-            System.out.println("first time this box has been hit by a rotor");
 
 
-            //we hit are in a new window
-            if (box.getHitBy() != whichHit) {
-                box.setHit(isHit, whichHit);
-            } else {
-                //make sure we aren't nulling the last hit by
-                box.setHit(isHit, box.getHitBy());
-
-
-            }
-
-        } else {
-            //the box has never been touched
-            box.setHit(isHit, whichHit);
-        }
-        if (box.getSound() != null) {
-            box.getSound().setGain(0.0f);
-        }
 
 /*
             //move a box outside make sure it goes back to full volume
@@ -606,7 +593,25 @@ public class Main extends PApplet {
                 System.out.println("double click");
 
                 //TODO: add copy
-                MovableBox temp = new MovableBox(this,info,dragTarget.getxLocation() + 50,dragTarget.getyLocation() + 50,25,25);
+                MovableBox endOfList = links.getEndOfLink(dragTarget);
+                float newX = endOfList.getxLocation();
+                float newY = endOfList.getyLocation();
+
+                if (newX < getWidth()/2) {
+                    newX += 50;
+                } else {
+                    newX -= 50;
+                }
+
+                if (newY < getHeight()/2) {
+                    newY += 50;
+                } else {
+                    newY -= 50;
+                }
+
+
+                MovableBox temp = new MovableBox(this,info,newX,newY,25,25);
+                temp.setClone(true);
                 Sample copy = dragTarget.getSound();
 
                 Sample newSound = new Sample(info, copy.getFilepath());
@@ -630,11 +635,13 @@ public class Main extends PApplet {
         }
 
         ListIterator<MovableBox> list = movables.listIterator();
+        Point mousePos = getMousePosition();
+
         while (list.hasNext()) {
             //System.out.println("yolo " + movables.size());
             MovableBox m = list.next();
-            if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+            if (mousePos != null) {
+                if (mousePos.distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
                     m.release();
 
 
@@ -697,7 +704,7 @@ public class Main extends PApplet {
                 }
             }
         }
-        if (dragTarget != null && mousePos != null && dragTarget.isMovable()) {
+        if (dragTarget != null && mousePos != null && dragTarget.isMovable() && dragTarget.isVisible()) {
             float xDistance = (float) (mousePos.getX() - dragTarget.getxLocation());
             float yDistance = (float) (mousePos.getY() - dragTarget.getyLocation());
 
@@ -715,6 +722,7 @@ public class Main extends PApplet {
     }
 
     private void updateActiveSounds(MovableBox target) {
+
         for (Rotater r: rotatePlayers.getRotators()) {
             if (CollisionManager.isPointInsideCircle(target, r)) {
 
@@ -730,6 +738,18 @@ public class Main extends PApplet {
                 int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
                 target.getSound().setDelay(soundDelay);
 
+                Point2D.Float p1 = new Point2D.Float(target.getxLocation(), target.getyLocation());
+                Point2D.Float p2 =  new Point2D.Float(r.getxOrigin() , r.getyOrigin());
+                float distance = (float) Math.abs(p2.distance(p1));
+                float gain = 0.0f;
+
+
+                gain = map(distance, 0, r.getLength(), -24.0f, 0.0f);
+                target.getSound().setGain(gain);
+                System.out.println("setting gain to " + gain);
+
+
+
             } else {
                 if (target.isHit() && target.getHitBy() == r) {
                     target.setHit(false, null);
@@ -741,6 +761,26 @@ public class Main extends PApplet {
                 }
             }
         }
+
+        Point2D.Float targetPoint = new Point2D.Float(target.getxLocation(), target.getyLocation());
+        if (CollisionManager.isPointInsideRectangle(targetPoint, 0,0,getWidth(), getHeight()) == false ) {
+            if (target.isClone()) {
+                //worried that this isn't causing an error
+                links.removeConnection(target);
+
+                //deleting from movables too tricky?
+                target.setHide(true);
+
+            } else {
+                target.setxAcceleration(0.0f);
+                target.setyAcceleration(0.0f);
+
+                target.setxLocation(target.getInitialSpawnX());
+                target.setyLocation(target.getInitialSpawnY());
+
+            }
+
+        }
     }
 
     public void mouseMoved() {
@@ -751,7 +791,6 @@ public class Main extends PApplet {
                 Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
                 if (p != null && mousePosition.distance(p) < m.getWidth()/2) {
                     m.setHover(true);
-                    System.out.println("hovering on " + m.toString());
                 }else {
                     m.setHover(false);
                 }

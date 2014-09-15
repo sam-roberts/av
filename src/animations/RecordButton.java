@@ -78,7 +78,7 @@ public class RecordButton extends MovableBox {
 
     public void stopRecording() {
         isRecording = false;
-        text="press me";
+        text="RECORD";
         return;
     }
 }

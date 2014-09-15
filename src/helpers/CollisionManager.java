@@ -7,6 +7,7 @@ import animations.Rotater;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Created by Sam on 31/05/2014.
@@ -62,7 +63,10 @@ public class CollisionManager {
         return ((angle) % 360);
 
     }
-
+    public static boolean isPointInsideRectangle(Point2D p1, float topLeftX, float topLeftY, float width, float height) {
+        Rectangle2D.Float rect = new Rectangle2D.Float(topLeftX, topLeftY, width, height);
+        return rect.contains(p1);
+    }
     public static boolean isPointInsideCircle(MovableBox point, Rotater circle) {
         int xdistance = (int) Math.pow(point.getxLocation() - circle.getxOrigin(), 2);
         int ydistance = (int) Math.pow(point.getyLocation() - circle.getyOrigin(), 2);
