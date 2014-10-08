@@ -26,6 +26,7 @@ public class MovableBox extends ProcessingAnimation {
     private boolean hover;
     private double angleToRotor;
     private boolean clone;
+    private boolean lockXMovement;
 
     public int getWidth() {
         return width;
@@ -83,6 +84,7 @@ public class MovableBox extends ProcessingAnimation {
 
         this.initialSpawnX = xLocation;
         this.initialSpawnY = yLocation;
+        lockXMovement = false;
 
 
     }
@@ -124,18 +126,19 @@ public class MovableBox extends ProcessingAnimation {
             //setFill(initialFill);
             playsound = true;
         }
+        if (getSound() != null) {
+            if (getSound().getGain() < 0) {
+                //System.out.println("this shit has gain" + getSound().getGain());
+                //System.out.println("width was " + this.width);
 
-        if (getSound().getGain() < 0) {
-            //System.out.println("this shit has gain" + getSound().getGain());
-            //System.out.println("width was " + this.width);
-
-            this.opacity = (int) p.map(getSound().getGain(), -24,0,10,255);
-            this.width = (int) p.map(this.opacity, 10,255, this.width, this.width*2.0f);
-            this.height = (int) p.map(this.opacity, 10,255, this.height, this.height*2.0f);
-        } else {
-            this.opacity = 255;
+                this.opacity = (int) p.map(getSound().getGain(), -24, 0, 10, 255);
+                this.width = (int) p.map(this.opacity, 10, 255, this.width, this.width * 2.0f);
+                this.height = (int) p.map(this.opacity, 10, 255, this.height, this.height * 2.0f);
+            } else {
+                this.opacity = 255;
 
 
+            }
         }
 
         p.fill(getFill().getRGB(), this.opacity);
@@ -146,17 +149,18 @@ public class MovableBox extends ProcessingAnimation {
 
         p.ellipse(0, 0, this.width, this.height);
         p.popMatrix();
-
-        if (sound.getSimpleFilename() != null) {
-            p.fill(0);
-            String text = sound.getSimpleFilename();
-            if (getxAcceleration() != 0.0f) {
-                text = text.concat("\nxAccel:" + getxAcceleration());
+        if (getSound() != null) {
+            if (sound.getSimpleFilename() != null) {
+                p.fill(0);
+                String text = sound.getSimpleFilename();
+                if (getxAcceleration() != 0.0f) {
+                    text = text.concat("\nxAccel:" + getxAcceleration());
+                }
+                if (getyAcceleration() != 0.0f) {
+                    text = text.concat("\nyAccel:" + getyAcceleration());
+                }
+                p.text(text, xLocation, yLocation - 20);
             }
-            if (getyAcceleration() != 0.0f) {
-                text = text.concat("\nyAccel:" + getyAcceleration());
-            }
-            p.text(text, xLocation,yLocation-20);
         }
 
 
@@ -357,5 +361,13 @@ public class MovableBox extends ProcessingAnimation {
 
     public float getInitialSpawnY() {
         return initialSpawnY;
+    }
+
+    public boolean isLockXMovement() {
+        return lockXMovement;
+    }
+
+    public void setLockXMovement(boolean lockXMovement) {
+        this.lockXMovement = lockXMovement;
     }
 }

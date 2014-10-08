@@ -17,21 +17,24 @@ public class Rotater extends ProcessingAnimation{
 
     double speed = Duration.QUARTER;
     private int length;
-    int xOrigin = 0;
-    public int getyOrigin() {
+    float xOrigin = 0;
+    public float getyOrigin() {
         return yOrigin;
     }
 
-    public int getxOrigin() {
+    public float getxOrigin() {
         return xOrigin;
     }
 
-    int yOrigin = 0;
+    float yOrigin = 0;
 
+    SpeedSlider slider;
     public Rotater(PApplet p, PublicInformation info, double SPEED) {
         super(p, info);
         this.speed = SPEED;
         this.setFill(Color.green);
+        this.slider = new SpeedSlider(p, info, 0,0, SPEED);
+
     }
 
     public int getWholeMeasureMs () {
@@ -72,6 +75,8 @@ public class Rotater extends ProcessingAnimation{
 
         p.popMatrix();
 
+        slider.draw();
+
 
     }
 
@@ -97,6 +102,10 @@ public class Rotater extends ProcessingAnimation{
 
     }
 
+    public SpeedSlider getSlider() {
+        return slider;
+    }
+
     public void setLength(int length) {
         this.length = length;
     }
@@ -105,9 +114,17 @@ public class Rotater extends ProcessingAnimation{
         return length;
     }
 
-    public void setOrigin(int x, int y) {
+    public void setOrigin(float x, float y) {
         this.xOrigin = x;
         this.yOrigin = y;
+
+        getSlider().setxLocation(x);
+
+        if (y < p.getHeight()/2) {
+            getSlider().setyLocation(y - getLength() - 50);
+        } else {
+            getSlider().setyLocation(y + getLength() + 30);
+        }
     }
 
     public Point getSecondPoint() {

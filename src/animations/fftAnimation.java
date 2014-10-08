@@ -28,7 +28,7 @@ public class fftAnimation extends ProcessingAnimation {
             // we'll use it as the width of our rectangles
             int w = p.getWidth()/fft.avgSize();
             int previousYPosition = 1;
-            int numCircles = 20;
+            int numCircles = 10;
             int size = 2000/numCircles;
 
             for(int i = 0; i < fft.avgSize(); i+= 5)

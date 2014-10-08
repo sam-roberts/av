@@ -15,6 +15,7 @@ public class FadeAnimation extends ProcessingAnimation {
     int animationOpacity;
     boolean startAnimation = false;
     int normalSize;
+    double speed = 0;
 
     public FadeAnimation(PApplet p, PublicInformation info, float xLocation, float yLocation, int size) {
         super(p, info);
@@ -44,7 +45,7 @@ public class FadeAnimation extends ProcessingAnimation {
 
             if (animationOpacity > 0) {
                 animationSize += 8;
-                animationOpacity -= 5;
+                animationOpacity -= 10;
 
             } else {
                 startAnimation=false;

@@ -155,6 +155,28 @@ public class Main extends PApplet {
         polygonAnimation = new PolygonAnimation(this,info);
         rotatePlayers = new RotatePlayers(this,info);
 
+        setupMovables();
+
+
+        voiceSampleList = new VoiceRecordingManager();
+        metronome = samples.getMetronome();
+
+
+        count = new CountdownAnimation(this, info);
+        beatCount = new BeatCounterAnimation(this,info);
+
+
+
+        activeSounds = new ArrayList<MovableBox>();
+        links = new LinkedAnimations(this, info);
+
+
+
+
+
+    }
+
+    private void setupMovables() {
         movables = new ArrayList<MovableBox>();
         int sizePadding = 50;
         int numVerticalMax = getHeight()/sizePadding;
@@ -180,23 +202,10 @@ public class Main extends PApplet {
 
         movables.add(recordButton);
 
-
-        voiceSampleList = new VoiceRecordingManager();
-        metronome = samples.getMetronome();
-
-
-        count = new CountdownAnimation(this, info);
-        beatCount = new BeatCounterAnimation(this,info);
-
-
-
-        activeSounds = new ArrayList<MovableBox>();
-        links = new LinkedAnimations(this, info);
-
-
-
-
-
+        ArrayList<Rotater> tempRotates = rotatePlayers.getRotators();
+        for (Rotater r: tempRotates) {
+            movables.add(r.getSlider().getSlider());
+        }
     }
 
     public void draw() {
@@ -214,7 +223,9 @@ public class Main extends PApplet {
             if ((box.getxAcceleration() != 0 || box.getyAcceleration() !=0) && box.isDragged() == false && box.isVisible()) {
                 updateActiveSounds(box);
             }
+
             box.draw();
+
 
         }
 
@@ -329,10 +340,13 @@ public class Main extends PApplet {
         boolean debug = true;
         if (debug) {
             float time = millis();
+            textSize(12);
+
             fill(Color.black.getRGB());
-            text("frame rate: " + frameRate + " time is " + time + " / tempo is " + info.getTempo(), getWidth()/2, 20);
+            text("frame rate: " + frameRate + " time is " + time + " / tempo is " + info.getTempo(), getWidth()/2 + 400, 20);
 
             pushMatrix();
+
             translate(getWidth()-200, 20);
             if(recorder != null && recorder.isRecording()) {
                 text("recording", 0, 0);
@@ -553,7 +567,11 @@ public class Main extends PApplet {
             double angle = m.getAngleToRotor();
             if (attached != null) {
                 int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), m.getHitBy().getSpeed(), m.getAngleToRotor());
+
+                //System.out.println("update active rotor speed is " + m.getHitBy().getSpeed() + " delay is " + soundDelay + " old delay: " + m.getSound().getDelay());
+
                 m.getSound().setDelay(soundDelay);
+                m.getSound().setLength(m.getHitBy().getSpeed());
             } else {
                 throw new NullPointerException("active sound not attached to anything");
             }
@@ -694,6 +712,7 @@ public class Main extends PApplet {
     public void mouseDragged() {
         Point mousePos = getMousePosition();
 
+        /*
         if (dragTarget == null && mousePos != null) {
             for (MovableBox m : movables) {
                 Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
@@ -704,15 +723,37 @@ public class Main extends PApplet {
                 }
             }
         }
+        */
         if (dragTarget != null && mousePos != null && dragTarget.isMovable() && dragTarget.isVisible()) {
             float xDistance = (float) (mousePos.getX() - dragTarget.getxLocation());
             float yDistance = (float) (mousePos.getY() - dragTarget.getyLocation());
 
-            dragTarget.setxAcceleration(dragTarget.getxAcceleration() + xDistance);
-            dragTarget.setyAcceleration(dragTarget.getyAcceleration() + yDistance);
 
-            dragTarget.setxLocation((float)mousePos.getX());
-            dragTarget.setyLocation((float) mousePos.getY());
+            if (! dragTarget.isLockXMovement()) {
+                dragTarget.setxLocation((float)mousePos.getX());
+                dragTarget.setxAcceleration(dragTarget.getxAcceleration() + xDistance);
+                dragTarget.setyAcceleration(dragTarget.getyAcceleration() + yDistance);
+                dragTarget.setyLocation((float) mousePos.getY());
+            } else {
+                //really gross why am i doing this
+                Rotater tempRotater = null;
+                for (Rotater r : rotatePlayers.getRotators()) {
+                    if (r.getSlider().getSlider() == dragTarget) {
+                        tempRotater = r;
+                        break;
+                    }
+                }
+                if (tempRotater != null) {
+                    float newX = tempRotater.getSlider().getClosestXPosition((float) mousePos.getX());
+                    dragTarget.setxLocation(newX);
+                    if (tempRotater.getSlider().isHasClicked()) {
+                        tempRotater.setSpeed(tempRotater.getSlider().getSpeed());
+                        System.out.println("updating delay to " + tempRotater.getSpeed());
+                        updateActiveDelays();
+                    }
+
+                }
+            }
             dragTarget.setDragged(true);
 
 
@@ -724,40 +765,43 @@ public class Main extends PApplet {
     private void updateActiveSounds(MovableBox target) {
 
         for (Rotater r: rotatePlayers.getRotators()) {
-            if (CollisionManager.isPointInsideCircle(target, r)) {
+            if (target.getSound() != null) {
 
-                if (! activeSounds.contains(target)) {
-                    activeSounds.add(target);
-                }
-
-                target.setHit(true, r);
-                target.getSound().setLength(r.getSpeed());
-
-                double angleToCenter = CollisionManager.getAngle(target.getxLocation(), target.getyLocation(), r.getxOrigin(), r.getyOrigin());
-                target.setAngleToRotor(angleToCenter);
-                int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
-                target.getSound().setDelay(soundDelay);
-
-                Point2D.Float p1 = new Point2D.Float(target.getxLocation(), target.getyLocation());
-                Point2D.Float p2 =  new Point2D.Float(r.getxOrigin() , r.getyOrigin());
-                float distance = (float) Math.abs(p2.distance(p1));
-                float gain = 0.0f;
-
-
-                gain = map(distance, 0, r.getLength(), -24.0f, 0.0f);
-                target.getSound().setGain(gain);
-                System.out.println("setting gain to " + gain);
-
-
-
-            } else {
-                if (target.isHit() && target.getHitBy() == r) {
-                    target.setHit(false, null);
-                    target.getSound().setLoop(false);
-                    if (activeSounds.contains(target)) {
-                        activeSounds.remove(target);
+                if (CollisionManager.isPointInsideCircle(target, r)) {
+                    if (!activeSounds.contains(target)) {
+                        activeSounds.add(target);
                     }
 
+                    target.setHit(true, r);
+                    target.getSound().setLength(r.getSpeed());
+
+                    double angleToCenter = CollisionManager.getAngle(target.getxLocation(), target.getyLocation(), r.getxOrigin(), r.getyOrigin());
+                    target.setAngleToRotor(angleToCenter);
+                    int soundDelay = Quantizer.getDelay(info.getDurationMS(Duration.WHOLE), r.getSpeed(), angleToCenter);
+                    target.getSound().setDelay(soundDelay);
+
+                    Point2D.Float p1 = new Point2D.Float(target.getxLocation(), target.getyLocation());
+                    Point2D.Float p2 = new Point2D.Float(r.getxOrigin(), r.getyOrigin());
+                    float distance = (float) Math.abs(p2.distance(p1));
+                    float gain = 0.0f;
+
+
+                    gain = map(distance, 0, r.getLength(), -24.0f, 0.0f);
+                    target.getSound().setGain(gain);
+                    System.out.println("setting gain to " + gain);
+
+
+
+
+                } else {
+                    if (target.isHit() && target.getHitBy() == r) {
+                        target.setHit(false, null);
+                        target.getSound().setLoop(false);
+                        if (activeSounds.contains(target)) {
+                            activeSounds.remove(target);
+                        }
+
+                    }
                 }
             }
         }
