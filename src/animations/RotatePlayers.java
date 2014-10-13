@@ -13,6 +13,11 @@ public class RotatePlayers {
 
     ArrayList<Rotater> rotators;
 
+    public static int BOTTOM_LEFT = 0;
+    public static int BOTTOM_RIGHT = 1;
+    public static int TOP_LEFT = 2;
+    public static int TOP_RIGHT = 3;
+
     public RotatePlayers(PApplet p, PublicInformation info) {
         rotators = new ArrayList<Rotater>();
         Rotater one = new Rotater(p, info, Duration.HALF);
@@ -33,9 +38,8 @@ public class RotatePlayers {
         sixteenth.setOrigin(p.getWidth()/2+200, p.getHeight()/2-300);
 
         rotators.add(one);
-        rotators.add(two);
         rotators.add(quarter);
-
+        rotators.add(two);
         rotators.add(sixteenth);
 
 

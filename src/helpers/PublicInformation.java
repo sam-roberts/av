@@ -18,7 +18,10 @@ public class PublicInformation {
     private ColourManager colourManager;
     private AudioOutput audioOut;
 
-    public PublicInformation() {
+    private final String rootDirectory;
+
+    public PublicInformation(String rootDirectory) {
+        this.rootDirectory = rootDirectory;
     }
 
     public int getTempo() {
@@ -71,5 +74,9 @@ public class PublicInformation {
 
     public AudioOutput getAudioOut() {
         return audioOut;
+    }
+
+    public String getRootDirectory() {
+        return rootDirectory;
     }
 }

@@ -140,4 +140,17 @@ public class Rotater extends ProcessingAnimation{
     public void setSpeed(double speed) {
         this.speed = speed;
     }
+
+
+    public Point2D.Float getPositionFromPercentage(float anglePercent, float volumePercent) {
+
+        float angleFromDegree = p.map(anglePercent, 0.0f, 100, 0, (float) (2 * Math.PI));
+        float distanceFromCenter = p.map(volumePercent, 0.0f, 100, 0, getLength()-5);
+
+        float x = (float) (getxOrigin() + distanceFromCenter * Math.cos((angleFromDegree - Math.PI/2)));
+        float y = (float) (getyOrigin() + distanceFromCenter * Math.sin((angleFromDegree - Math.PI/2)));
+        Point2D.Float point = new Point2D.Float(x,y);
+
+        return point;
+    }
 }

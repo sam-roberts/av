@@ -9,12 +9,15 @@ import ddf.minim.analysis.BeatDetect;
 import ddf.minim.analysis.FFT;
 import helpers.*;
 import processing.core.PApplet;
+import processing.core.PFont;
 import themidibus.*; //Import the library
 
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,9 +72,12 @@ public class Main extends PApplet {
     LinkedAnimations links;
 
     ArrayList<MovableBox> activeSounds;
+    SampleLibrary sampleLibrary;
 
 
     CountdownAnimation count;
+
+    MenuUI menuUI;
 
 
     public void setup() {
@@ -85,7 +91,9 @@ public class Main extends PApplet {
         noStroke();
         smooth();
         keyTemp = false;
-        info = new PublicInformation();
+        PFont font36 = createFont("Arial", 36, true);
+        textFont(font36);
+        info = new PublicInformation(DATA_PATH);
         info.setTempo(120);
         info.setMidi(myBus);
         info.setMinim(minim);
@@ -154,6 +162,8 @@ public class Main extends PApplet {
         rotateVoice = new RotateVoiceInput(this, info);
         polygonAnimation = new PolygonAnimation(this,info);
         rotatePlayers = new RotatePlayers(this,info);
+        sampleLibrary = new SampleLibrary(this, rotatePlayers, info);
+        activeSounds = new ArrayList<MovableBox>();
 
         setupMovables();
 
@@ -167,8 +177,10 @@ public class Main extends PApplet {
 
 
 
-        activeSounds = new ArrayList<MovableBox>();
         links = new LinkedAnimations(this, info);
+        menuUI = new MenuUI(this, info);
+
+
 
 
 
@@ -206,6 +218,9 @@ public class Main extends PApplet {
         for (Rotater r: tempRotates) {
             movables.add(r.getSlider().getSlider());
         }
+        for (MovableBox m: sampleLibrary.getCurrentLibrary()) {
+            updateActiveSounds(m);
+        }
     }
 
     public void draw() {
@@ -217,17 +232,9 @@ public class Main extends PApplet {
 
         count.drawTimed();
         beatCount.draw();
+        drawMovables(movables);
+        drawMovables(sampleLibrary.getCurrentLibrary());
 
-        for (MovableBox box: movables) {
-            //doCollisionStuff(box);
-            if ((box.getxAcceleration() != 0 || box.getyAcceleration() !=0) && box.isDragged() == false && box.isVisible()) {
-                updateActiveSounds(box);
-            }
-
-            box.draw();
-
-
-        }
 
 
         if (polygonAnimation.isKeyTriggered()) {
@@ -254,6 +261,8 @@ public class Main extends PApplet {
         }
 
         links.draw();
+
+        menuUI.draw();
 
 
 
@@ -359,6 +368,17 @@ public class Main extends PApplet {
 
 
 
+    }
+
+    private void drawMovables(ArrayList<MovableBox> list) {
+        for (MovableBox box : list) {
+            //doCollisionStuff(box);
+            if ((box.getxAcceleration() != 0 || box.getyAcceleration() != 0) && box.isDragged() == false && box.isVisible()) {
+                updateActiveSounds(box);
+            }
+            box.draw();
+
+        }
     }
 
     private void doCollisionStuff(MovableBox box) {
@@ -596,15 +616,11 @@ public class Main extends PApplet {
 
     }
     public void mousePressed() {
-        for (MovableBox m: movables) {
-            if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
-                    m.pressed();
-                    dragTarget = m;
-                    break;
-                }
-            }
+        findDragTarget(this.movables);
+        if (dragTarget == null) {
+            findDragTarget(sampleLibrary.getCurrentLibrary());
         }
+
         if (dragTarget != null) {
             if (doubleClick.isDoubleClick(dragTarget, this.millis())) {
                 doubleClick.reset();
@@ -644,67 +660,78 @@ public class Main extends PApplet {
             } else {
                 doubleClick.setClick(dragTarget, this.millis());
             }
+        } else {
+            pressedUI();
         }
     }
+
+    private void pressedUI() {
+        Point mouseLocation = getMousePosition();
+        if (menuUI.getWholeSize().contains(mouseLocation)) {
+            menuUI.clickedAt(mouseLocation);
+        }
+    }
+
+    private void findDragTarget(ArrayList<MovableBox> movables) {
+        for (MovableBox m: movables) {
+            if (getMousePosition() != null) {
+                if (getMousePosition().distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
+                    m.pressed();
+                    dragTarget = m;
+                    System.out.println("found target");
+                    break;
+                }
+            }
+        }
+    }
+
     public void mouseReleased() {
         if (dragTarget != null) {
             dragTarget.setDragged(false);
+            dragTarget.release();
+            doReleaseStuff();
             dragTarget = null;
         }
 
-        ListIterator<MovableBox> list = movables.listIterator();
-        Point mousePos = getMousePosition();
-
-        while (list.hasNext()) {
-            //System.out.println("yolo " + movables.size());
-            MovableBox m = list.next();
-            if (mousePos != null) {
-                if (mousePos.distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
-                    m.release();
 
 
+    }
 
-                    if (m.equals(recordButton)) {
-                        System.out.println("pressed record button");
-
-
-                        int numRecordings = samples.getNumSamplesKey("recorded");
-                        String voiceRecordingFilepath = DATA_PATH + "recorded\\test" + (numRecordings + 1) + ".wav";
-
-                        //first time we create one
-                        if (recorder == null) {
-                            recorder = minim.createRecorder(in, voiceRecordingFilepath);
-                        }
-                        if (recorder.isRecording()) {
-                            recorder.endRecord();
-                            recorder.save();
-                            recorder = null;
+    private void doReleaseStuff() {
+        //System.out.println("yolo " + movables.size());
+        if (dragTarget.equals(recordButton)) {
+            System.out.println("pressed record button");
 
 
-                            //add to sample manager?
-                            System.out.println("samples before: " + samples.getNumSamples());
-                            samples.insertIndividualItem(voiceRecordingFilepath);
-                            System.out.println("samples after: " + samples.getNumSamples());
+            int numRecordings = samples.getNumSamplesKey("recorded");
+            String voiceRecordingFilepath = DATA_PATH + "recorded\\test" + (numRecordings + 1) + ".wav";
 
-                            //update movables
-                            MovableBox temp = new MovableBox(this, info, 800, 600, 40, 40);
+            //first time we create one
+            if (recorder == null) {
+                recorder = minim.createRecorder(in, voiceRecordingFilepath);
+            }
+            if (recorder.isRecording()) {
+                recorder.endRecord();
+                recorder.save();
+                recorder = null;
 
-                            temp.setSound(samples.getNewestSample());
 
-                            movables.add(temp);
-                            updateActiveSounds(temp);
-                            recordButton.stopRecording();
+                //add to sample manager?
+                System.out.println("samples before: " + samples.getNumSamples());
+                samples.insertIndividualItem(voiceRecordingFilepath);
+                System.out.println("samples after: " + samples.getNumSamples());
 
-                        } else {
-                            recordButton.startRecording();
+                //update movables
+                MovableBox temp = new MovableBox(this, info, 800, 600, 40, 40);
+                temp.setSound(samples.getNewestSample());
+                movables.add(temp);
+                updateActiveSounds(temp);
+                recordButton.stopRecording();
 
-                            recorder.beginRecord();
+            } else {
+                recordButton.startRecording();
+                recorder.beginRecord();
 
-                        }
-                        break;
-                    }
-                }
-                //System.out.println("made it to the bottom");
             }
         }
     }
@@ -829,6 +856,28 @@ public class Main extends PApplet {
 
     public void mouseMoved() {
         MovableBox target = null;
+        checkHover(movables);
+        checkHover(sampleLibrary.getCurrentLibrary());
+        checkHoverTwo(menuUI.getButtons());
+
+
+    }
+    private void checkHoverTwo(ArrayList<UIButton> uiButtons) {
+        for (UIButton m: uiButtons) {
+            Point mousePosition = getMousePosition();
+            if (mousePosition != null) {
+                Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
+                Rectangle2D.Float r = new Rectangle2D.Float(m.getxLocation(), m.getyLocation(), m.getWidth(), m.getWidth());
+
+                if (p != null && r.contains(mousePosition)) {
+                    m.setHover(true);
+                }else {
+                    m.setHover(false);
+                }
+            }
+        }
+    }
+    private void checkHover(ArrayList<MovableBox> movables) {
         for (MovableBox m: movables) {
             Point mousePosition = getMousePosition();
             if (mousePosition != null) {
@@ -840,6 +889,5 @@ public class Main extends PApplet {
                 }
             }
         }
-
     }
 }

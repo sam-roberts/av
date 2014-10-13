@@ -51,7 +51,6 @@ public class MovableBox extends ProcessingAnimation {
     boolean movable;
 
     ArrayList<FadeAnimation> fadeAnimations;
-    ArrayList<FadeAnimation> toDeleteList;
 
     ProcessingAnimation extraAnimation;
 
@@ -78,10 +77,9 @@ public class MovableBox extends ProcessingAnimation {
         initialFill = this.fill;
         this.movable = true;
         fadeAnimations = new ArrayList<FadeAnimation>();
-        toDeleteList =new ArrayList<FadeAnimation>();
         angleToRotor = 0;
         this.clone = false;
-
+        this.opacity = 255;
         this.initialSpawnX = xLocation;
         this.initialSpawnY = yLocation;
         lockXMovement = false;
@@ -103,19 +101,18 @@ public class MovableBox extends ProcessingAnimation {
             setyLocation((getyLocation() + getyAcceleration()));
         }
 
+
         Iterator<FadeAnimation> it = fadeAnimations.iterator();
         while (it.hasNext()) {
             FadeAnimation f = it.next();
             if (f.isStartAnimation()) {
                 f.drawAnimation();
             } else {
-                toDeleteList.add(f);
+                it.remove();
             }
         }
-        for (FadeAnimation f: toDeleteList) {
-            fadeAnimations.remove(f);
-        }
-        toDeleteList.clear();
+
+
 
 
         if (isHit()) {
@@ -219,6 +216,9 @@ public class MovableBox extends ProcessingAnimation {
         return sound;
 
     }
+    public float getCenterX() {
+        return ((getxLocation() + getWidth()/2.0f));
+    }
 
     public void setSound(Sample sound) {
         this.sound = sound;
@@ -286,7 +286,7 @@ public class MovableBox extends ProcessingAnimation {
         this.hover = hover;
 
         if (isHover()) {
-            setFill(this.initialFill.brighter().brighter());
+            setFill(this.initialFill.brighter());
         } else {
             setFill(this.initialFill);
         }
@@ -369,5 +369,10 @@ public class MovableBox extends ProcessingAnimation {
 
     public void setLockXMovement(boolean lockXMovement) {
         this.lockXMovement = lockXMovement;
+    }
+
+    public void setInitialFill(Color initialFill) {
+        this.initialFill = initialFill;
+        this.fill = initialFill;
     }
 }

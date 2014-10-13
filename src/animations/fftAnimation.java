@@ -28,10 +28,10 @@ public class fftAnimation extends ProcessingAnimation {
             // we'll use it as the width of our rectangles
             int w = p.getWidth()/fft.avgSize();
             int previousYPosition = 1;
-            int numCircles = 10;
+            int numCircles = 30;
             int size = 2000/numCircles;
 
-            for(int i = 0; i < fft.avgSize(); i+= 5)
+            for(int i = 0; i < fft.avgSize(); i+= 8)
             {
                 float currentStrength = fft.getAvg(i);
                 // draw a rectangle for each average, multiply the value by 5 so we can see it better
