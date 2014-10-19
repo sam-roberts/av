@@ -1,6 +1,7 @@
 package helpers;
 
 import animations.ColourManager;
+import animations.LinkedAnimations;
 import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
 import themidibus.MidiBus;
@@ -19,6 +20,7 @@ public class PublicInformation {
     private AudioOutput audioOut;
 
     private final String rootDirectory;
+    private LinkedAnimations links;
 
     public PublicInformation(String rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -78,5 +80,13 @@ public class PublicInformation {
 
     public String getRootDirectory() {
         return rootDirectory;
+    }
+
+    public LinkedAnimations getLinks() {
+        return links;
+    }
+
+    public void setLinks(LinkedAnimations links) {
+        this.links = links;
     }
 }

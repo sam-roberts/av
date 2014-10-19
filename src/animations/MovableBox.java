@@ -27,6 +27,13 @@ public class MovableBox extends ProcessingAnimation {
     private double angleToRotor;
     private boolean clone;
     private boolean lockXMovement;
+    private boolean recording;
+
+    MovableBox child;
+    MovableBox parent;
+
+    private boolean original;
+    private boolean toDelete;
 
     public int getWidth() {
         return width;
@@ -83,6 +90,13 @@ public class MovableBox extends ProcessingAnimation {
         this.initialSpawnX = xLocation;
         this.initialSpawnY = yLocation;
         lockXMovement = false;
+        this.recording = false;
+        child = null;
+        parent = null;
+        original = true;
+
+        toDelete = false;
+
 
 
     }
@@ -150,6 +164,9 @@ public class MovableBox extends ProcessingAnimation {
             if (sound.getSimpleFilename() != null) {
                 p.fill(0);
                 String text = sound.getSimpleFilename();
+
+                text = text.concat( "\nhash: " + this.hashCode() + "\n");
+
                 if (getxAcceleration() != 0.0f) {
                     text = text.concat("\nxAccel:" + getxAcceleration());
                 }
@@ -246,7 +263,7 @@ public class MovableBox extends ProcessingAnimation {
     }
 
     public void playsound() {
-        if (this.isVisible()) {
+        if (this.isVisible() && getSound() != null) {
             getSound().setLoop(false);
 
             if (!getSound().isRunning()) {
@@ -374,5 +391,141 @@ public class MovableBox extends ProcessingAnimation {
     public void setInitialFill(Color initialFill) {
         this.initialFill = initialFill;
         this.fill = initialFill;
+    }
+
+    public void setRecording(boolean recording) {
+        this.recording = recording;
+    }
+
+    public boolean isRecording() {
+        return recording;
+    }
+
+    public MovableBox cloneThis() {
+        MovableBox temp = new MovableBox(p,info,getxLocation(),getyLocation(),initialWidth,initialHeight);
+        temp.setClone(true);
+        Sample copy = getSound();
+        Sample newSound = new Sample(info, copy.getFilepath());
+        temp.setSound(newSound);
+        temp.overrideFill(getInitialFill());
+        temp.setOriginal(false);
+        return temp;
+
+    }
+
+    public MovableBox getChild() {
+        return child;
+    }
+
+    public void setChild(MovableBox child) {
+
+        if (getParent() != null) {
+            System.out.println("PARENT OF " + this.hashCode() + " IS " + getParent().hashCode());
+
+        }
+
+        if (child == null) {
+            System.out.println("SET CHILD ON " + this.hashCode() + " to NULL");
+
+            this.child = child;
+        } else {
+
+            System.out.println("SET CHILD ON " + this.hashCode() + " to " + child.hashCode());
+            //simple case where we are just adding a node to the end
+            if (getChild() == null) {
+                this.child = child;
+                child.setParent(this);
+                child.setChild(null);
+
+                System.out.println("PARENT OF " + child.hashCode() + " is  " + child.getParent().hashCode());
+
+
+            } else {
+                throw new RuntimeException("don't do this");
+            }
+        }
+
+
+    }
+
+    public boolean isOriginal() {
+        return original;
+    }
+
+    public void setOriginal(boolean original) {
+        this.original = original;
+    }
+
+    public MovableBox getParent() {
+        return parent;
+    }
+
+    public void setParent(MovableBox parent) {
+        this.parent = parent;
+    }
+
+    public void setInitialSpawnX(float initialSpawnX) {
+        this.initialSpawnX = initialSpawnX;
+    }
+
+    public void setInitialSpawnY(float initialSpawnY) {
+        this.initialSpawnY = initialSpawnY;
+    }
+
+    public MovableBox getLastChild() {
+        MovableBox iter = this;
+        MovableBox iter2 = this;
+
+        while (iter2.getChild() != null) {
+            iter = iter.getChild();
+            iter2 = iter.getChild();
+
+        }
+        return  iter;
+    }
+
+    public void deleteThis() {
+        System.out.println("flagging a node to be deleted on next cycle");
+        if (getChild() != null) {
+            System.out.println(" parent x " + getParent().getxLocation() + " this x " + getxLocation() + " child location " + getChild().getxLocation());
+            getParent().forceSetChild(getChild());
+            getChild().setParent(getParent());
+        } else {
+            System.out.println("node has no children");
+
+            System.out.println("parent hash: " + this.getParent().hashCode() + " this hash: " + hashCode());
+
+            //should be impossible;
+            if (getParent() != null) {
+                //somehow this isn't working
+                getParent().forceSetChild(null);
+
+                if (getParent().getChild() == null ){
+                    System.out.println("working normally - The parent no longer points to this");
+
+                } else {
+                    throw new RuntimeException(("WTF IS GOING ON"));
+                }
+
+            } else {
+                throw new NullPointerException("somehow trying to delete the head node (should be impossible)");
+            }
+        }
+
+    }
+
+    public void flagToDelete() {
+        toDelete = true;
+
+    }
+
+    private void forceSetChild(MovableBox child) {
+        this.child = child;
+
+    }
+
+
+    public boolean isToDelete() {
+        return toDelete;
     }
 }

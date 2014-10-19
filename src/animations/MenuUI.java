@@ -18,9 +18,13 @@ public class MenuUI extends ProcessingAnimation {
     private final int NUM_OTHER = 2;
     private final int DIVIDER_BORDER = 20;
 
+    public static final int TEMPO_DOWN = 1;
+    public static final int TEMPO_UP = 2;
+
+
     private final float CENTER_OFFSET = (BUTTON_WIDTH * (NUM_PRESETS+ NUM_OTHER)) / 2.0f;
 
-    private int presetClicked = 2;
+    private int presetClicked = 0;
     public MenuUI(PApplet p, PublicInformation info) {
         super(p, info);
         buttons = new ArrayList<UIButton>();
@@ -30,7 +34,7 @@ public class MenuUI extends ProcessingAnimation {
             if (i < NUM_PRESETS) {
                 if (i == 0) {
                     buttonText = "Reset";
-                    c = new Color(128,163,189);
+                    c = new Color(144,189,128);
 
                 } else {
                     buttonText = Integer.toString(i);
@@ -40,10 +44,13 @@ public class MenuUI extends ProcessingAnimation {
             } else {
                 if (i == (NUM_PRESETS + NUM_OTHER - 2)) {
                     buttonText = "-";
+                    c = new Color(128,163,189);
+
                 } else {
                     buttonText = "+";
+                    c = new Color(203,114,116);
                 }
-                c = new Color(144,189,128);
+
             }
             UIButton button = new UIButton(p,info, (int) ((int) p.getWidth()/2 + (i*BUTTON_WIDTH - CENTER_OFFSET)),p.getHeight()-BUTTON_WIDTH, buttonText, BUTTON_WIDTH,BUTTON_WIDTH);
             button.setInitialFill(c);
@@ -54,7 +61,7 @@ public class MenuUI extends ProcessingAnimation {
     @Override
     protected void drawAnimation() {
         for (int i = 0; i < buttons.size(); i++) {
-            if (i == presetClicked-1) {
+            if (i == presetClicked && i > 0 && i < NUM_PRESETS) {
                 buttons.get(i).turnOn();
             } else {
                 buttons.get(i).turnOff();
@@ -69,7 +76,7 @@ public class MenuUI extends ProcessingAnimation {
         p.textSize(24);
         float left = p.getWidth()/2.0f - CENTER_OFFSET;
         p.text("Presets", left + (((NUM_PRESETS/2) + 1) * BUTTON_WIDTH), p.getHeight() - BUTTON_WIDTH - 30);
-        p.text("Tempo", left + ((NUM_PRESETS + NUM_OTHER/2) * BUTTON_WIDTH), p.getHeight() - BUTTON_WIDTH - 30);
+        p.text("Tempo: " + info.getTempo() + "bpm", left + ((NUM_PRESETS + NUM_OTHER/2) * BUTTON_WIDTH), p.getHeight() - BUTTON_WIDTH - 30);
 
         for (int i = 0; i < NUM_OTHER + NUM_PRESETS - 1; i++) {
             float xLocation = left + (i+1)*BUTTON_WIDTH;
@@ -94,7 +101,26 @@ public class MenuUI extends ProcessingAnimation {
 
     public void clickedAt(Point mouseLocation) {
         float xDistance = (float) (mouseLocation.getX() - buttons.get(0).getxLocation());
-        int which = (int) (xDistance/BUTTON_WIDTH) + 1;
+        int which = (int) (xDistance/BUTTON_WIDTH);
         presetClicked = which;
+    }
+
+    public int getPresetClicked() {
+        return presetClicked;
+    }
+
+    public boolean isTempo() {
+        return (presetClicked >= NUM_PRESETS) ;
+
+    }
+
+    public int getTempoButton() {
+        if (presetClicked == NUM_PRESETS) {
+            return TEMPO_DOWN;
+        } else if (presetClicked == NUM_PRESETS + 1) {
+            return TEMPO_UP;
+        } else {
+            return 0;
+        }
     }
 }

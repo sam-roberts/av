@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class Main extends PApplet {
+public class MusicFun extends PApplet {
 
     public static final int LAG_COMPENSATION = 50;
     public static final int AVERAGE_LAG_COMPENSATION = 0;
@@ -62,6 +62,7 @@ public class Main extends PApplet {
 
     ArrayList<MovableBox> movables;
     MovableBox dragTarget = null;
+    MovableBox selectionTarget = null;
     VoiceRecordingManager voiceSampleList;
 
     Sample metronome;
@@ -69,7 +70,6 @@ public class Main extends PApplet {
     RecordButton recordButton;
 
     BeatCounterAnimation beatCount;
-    LinkedAnimations links;
 
     ArrayList<MovableBox> activeSounds;
     SampleLibrary sampleLibrary;
@@ -77,8 +77,12 @@ public class Main extends PApplet {
 
     CountdownAnimation count;
 
-    MenuUI menuUI;
+    boolean needClear = false;
 
+    MenuUI menuUI;
+    public static void main(String args[]) {
+        PApplet.main(new String[] { "--present", "main.MusicFun" });
+    }
 
     public void setup() {
 
@@ -98,6 +102,7 @@ public class Main extends PApplet {
         info.setMidi(myBus);
         info.setMinim(minim);
         info.setAudioOut(out);
+
 
         cm = new ColourManager();
         info.setColourManager(cm);
@@ -177,7 +182,6 @@ public class Main extends PApplet {
 
 
 
-        links = new LinkedAnimations(this, info);
         menuUI = new MenuUI(this, info);
 
 
@@ -218,7 +222,7 @@ public class Main extends PApplet {
         for (Rotater r: tempRotates) {
             movables.add(r.getSlider().getSlider());
         }
-        for (MovableBox m: sampleLibrary.getCurrentLibrary()) {
+        for (MovableBox m: sampleLibrary.getCurrentLibraryList()) {
             updateActiveSounds(m);
         }
     }
@@ -232,8 +236,29 @@ public class Main extends PApplet {
 
         count.drawTimed();
         beatCount.draw();
+
+        //handles the case of clicking reset when it was already the last one clicked
+        if (needClear) {
+            resetMovables(movables);
+            activeSounds.clear();
+            needClear = false;
+        }
+
+        if (menuUI.getPresetClicked() != sampleLibrary.getCurrentLibrary()) {
+                if (menuUI.isTempo()) {
+
+                } else {
+                    resetMovables(sampleLibrary.getCurrentLibraryList());
+                    sampleLibrary.setCurrentLibrary(menuUI.getPresetClicked());
+                    for (MovableBox m : sampleLibrary.getCurrentLibraryList()) {
+                        updateActiveSounds(m);
+                    }
+                }
+
+        }
         drawMovables(movables);
-        drawMovables(sampleLibrary.getCurrentLibrary());
+
+        drawMovables(sampleLibrary.getCurrentLibraryList());
 
 
 
@@ -260,7 +285,6 @@ public class Main extends PApplet {
             m.getExtraAnimation().draw();
         }
 
-        links.draw();
 
         menuUI.draw();
 
@@ -370,14 +394,99 @@ public class Main extends PApplet {
 
     }
 
-    private void drawMovables(ArrayList<MovableBox> list) {
-        for (MovableBox box : list) {
-            //doCollisionStuff(box);
-            if ((box.getxAcceleration() != 0 || box.getyAcceleration() != 0) && box.isDragged() == false && box.isVisible()) {
-                updateActiveSounds(box);
-            }
-            box.draw();
+    private void resetMovables(ArrayList<MovableBox> list) {
+        Iterator<MovableBox> iterator = list.iterator();
+        while (iterator.hasNext()) {
+            MovableBox m = iterator.next();
+            if (m.isClone() && m.isOriginal() == false) {
+                m.getParent().setChild(null);
 
+                iterator.remove();
+            } else {
+                //don't move sliders
+
+
+                if (!m.isLockXMovement()) {
+                    m.setxLocation(m.getInitialSpawnX());
+                    m.setyLocation(m.getInitialSpawnY());
+
+                }
+
+            }
+            updateActiveSounds(m);
+            if (activeSounds.contains(m)) {
+                activeSounds.remove(m);
+            }
+
+
+        }
+    }
+
+    private void drawMovables(ArrayList<MovableBox> list) {
+        int size = list.size();
+
+        MovableBox test = null;
+
+        Iterator<MovableBox> iterator = list.iterator();
+        while (iterator.hasNext()) {
+            MovableBox box = iterator.next();
+            if (box.isToDelete()) {
+                box.deleteThis();
+                iterator.remove();
+            } else {
+                //doCollisionStuff(box);
+                if ((box.getxAcceleration() != 0 || box.getyAcceleration() != 0) && box.isDragged() == false && box.isVisible()) {
+                    updateActiveSounds(box);
+                }
+
+                if (selectionTarget == box) {
+                    //add play button over it
+                    fill(0);
+                    pushMatrix();
+                    translate(box.getxLocation(), box.getyLocation());
+
+                    triangle(0, 0, 0, 10, 5, 5);
+
+                    popMatrix();
+
+                } else {
+                }
+                box.draw();
+
+                if (box.getChild() != null) {
+
+                    float p1x = box.getxLocation();
+                    float p2x = box.getChild().getxLocation();
+
+                    float p1y = box.getyLocation();
+                    float p2y = box.getChild().getyLocation();
+
+                    line(p1x, p1y, p2x, p2y);
+
+                    text("connecting " + box.hashCode() + " to " + box.getChild().hashCode(), (p1x + p2x) / 2.0f, (p1y + p2y) / 2.0f);
+
+                    MovableBox temp1 = box.getChild();
+                    MovableBox temp2 = box.getParent();
+
+
+
+                    if (temp1 != null && temp2 != null) {
+                        MovableBox temp3 = temp1.getParent();
+                        MovableBox temp4 = temp2.getChild();
+
+                        if (temp3 != null && temp4 != null) {
+                            text("\n\n\n(reverse) connecting:\n 'child's parent'" + temp3.hashCode() + " to 'parents child'" + temp4.hashCode(), (p1x + p2x) / 2.0f, (p1y + p2y) / 2.0f);
+                        }
+                    }
+
+                }
+            }
+        }
+        if (test != null) {
+            System.out.println("wtf");
+        }
+        if (size != list.size()) {
+            System.out.println("we removed some stuff!");
         }
     }
 
@@ -618,57 +727,77 @@ public class Main extends PApplet {
     public void mousePressed() {
         findDragTarget(this.movables);
         if (dragTarget == null) {
-            findDragTarget(sampleLibrary.getCurrentLibrary());
+            findDragTarget(sampleLibrary.getCurrentLibraryList());
         }
 
         if (dragTarget != null) {
-            if (doubleClick.isDoubleClick(dragTarget, this.millis())) {
+            if (doubleClick.isDoubleClick(dragTarget, this.millis()) && dragTarget.isLockXMovement() == false) {
                 doubleClick.reset();
                 System.out.println("double click");
 
                 //TODO: add copy
-                MovableBox endOfList = links.getEndOfLink(dragTarget);
-                float newX = endOfList.getxLocation();
-                float newY = endOfList.getyLocation();
-
-                if (newX < getWidth()/2) {
-                    newX += 50;
+                MovableBox temp;
+                if (dragTarget.getLastChild() == null) {
+                    temp = dragTarget.cloneThis();
+                    dragTarget.setChild(temp);
                 } else {
-                    newX -= 50;
+                    temp = dragTarget.getLastChild().cloneThis();
+                    dragTarget.getLastChild().setChild(temp);
+
                 }
 
-                if (newY < getHeight()/2) {
-                    newY += 50;
+                if (temp.getxLocation() < getWidth()) {
+                    temp.setxLocation(temp.getxLocation() + 50);
                 } else {
-                    newY -= 50;
+                    temp.setxLocation(temp.getxLocation() - 50);
                 }
 
+                if (temp.getyLocation() < getHeight()) {
+                    temp.setyLocation(temp.getyLocation() + 50);
+                } else {
+                    temp.setyLocation(temp.getyLocation() - 50);
+                }
 
-                MovableBox temp = new MovableBox(this,info,newX,newY,25,25);
-                temp.setClone(true);
-                Sample copy = dragTarget.getSound();
+                if (movables.contains(dragTarget)) {
+                    movables.add(temp);
 
-                Sample newSound = new Sample(info, copy.getFilepath());
-
-                temp.setSound(newSound);
-                temp.overrideFill(dragTarget.getInitialFill());
-
-                movables.add(temp);
+                } else {
+                    sampleLibrary.getCurrentLibraryList().add(temp);
+                }
                 updateActiveSounds(temp);
-                links.addConnection(dragTarget, temp);
+
 
             } else {
                 doubleClick.setClick(dragTarget, this.millis());
+
+                dragTarget.playsound();
             }
         } else {
             pressedUI();
         }
+
+        selectionTarget = dragTarget;
     }
 
     private void pressedUI() {
         Point mouseLocation = getMousePosition();
         if (menuUI.getWholeSize().contains(mouseLocation)) {
             menuUI.clickedAt(mouseLocation);
+
+            if (menuUI.getPresetClicked() == 0) {
+                needClear = true;
+            }
+            if (menuUI.isTempo()) {
+                if (menuUI.getTempoButton() == menuUI.TEMPO_DOWN) {
+                    tempoDown();
+                } else if (menuUI.getTempoButton() == menuUI.TEMPO_UP) {
+                    tempoUp();
+                }
+            }
+
+
+
+
         }
     }
 
@@ -723,6 +852,7 @@ public class Main extends PApplet {
 
                 //update movables
                 MovableBox temp = new MovableBox(this, info, 800, 600, 40, 40);
+                temp.setRecording(true);
                 temp.setSound(samples.getNewestSample());
                 movables.add(temp);
                 updateActiveSounds(temp);
@@ -835,12 +965,16 @@ public class Main extends PApplet {
 
         Point2D.Float targetPoint = new Point2D.Float(target.getxLocation(), target.getyLocation());
         if (CollisionManager.isPointInsideRectangle(targetPoint, 0,0,getWidth(), getHeight()) == false ) {
-            if (target.isClone()) {
+            if (target.isClone()|| target.isRecording()) {
                 //worried that this isn't causing an error
-                links.removeConnection(target);
 
                 //deleting from movables too tricky?
-                target.setHide(true);
+                //TODO: THISb
+                target.flagToDelete();
+
+
+
+                //target.setHide(true);
 
             } else {
                 target.setxAcceleration(0.0f);
@@ -857,7 +991,7 @@ public class Main extends PApplet {
     public void mouseMoved() {
         MovableBox target = null;
         checkHover(movables);
-        checkHover(sampleLibrary.getCurrentLibrary());
+        checkHover(sampleLibrary.getCurrentLibraryList());
         checkHoverTwo(menuUI.getButtons());
 
 
