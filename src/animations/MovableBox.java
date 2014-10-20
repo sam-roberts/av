@@ -13,6 +13,8 @@ import java.util.Iterator;
  */
 public class MovableBox extends ProcessingAnimation {
 
+    public static final int BIG_BUTTON = 70;
+    public static final int RECORDED_WIDTH = 60;
     float xLocation;
     float yLocation;
     int width;
@@ -28,6 +30,9 @@ public class MovableBox extends ProcessingAnimation {
     private boolean clone;
     private boolean lockXMovement;
     private boolean recording;
+
+    public static final int NODE_WIDTH = 50;
+
 
     MovableBox child;
     MovableBox parent;
@@ -143,8 +148,8 @@ public class MovableBox extends ProcessingAnimation {
                 //System.out.println("width was " + this.width);
 
                 this.opacity = (int) p.map(getSound().getGain(), -24, 0, 10, 255);
-                this.width = (int) p.map(this.opacity, 10, 255, this.width, this.width * 2.0f);
-                this.height = (int) p.map(this.opacity, 10, 255, this.height, this.height * 2.0f);
+                this.width = (int) p.map(this.opacity, 10, 255, this.width, this.width * 1.5f);
+                this.height = (int) p.map(this.opacity, 10, 255, this.height, this.height * 1.5f);
             } else {
                 this.opacity = 255;
 
@@ -164,6 +169,7 @@ public class MovableBox extends ProcessingAnimation {
             if (sound.getSimpleFilename() != null) {
                 p.fill(0);
                 String text = sound.getSimpleFilename();
+                /*
 
                 text = text.concat( "\nhash: " + this.hashCode() + "\n");
 
@@ -173,7 +179,9 @@ public class MovableBox extends ProcessingAnimation {
                 if (getyAcceleration() != 0.0f) {
                     text = text.concat("\nyAccel:" + getyAcceleration());
                 }
-                p.text(text, xLocation, yLocation - 20);
+                */
+                //TODO: needed?
+                //p.text(text, xLocation, yLocation - getWidth());
             }
         }
 

@@ -26,7 +26,7 @@ public class RotatePlayers {
 
         Rotater quarter = new Rotater(p, info, Duration.QUARTER);
         quarter.setLength(280);
-        quarter.setOrigin(p.getWidth()/2 + 450, p.getHeight()/2+150);
+        quarter.setOrigin(p.getWidth()/2 + 550, p.getHeight()/2+150);
 
 
         Rotater two = new Rotater(p, info, Duration.EIGHTH);

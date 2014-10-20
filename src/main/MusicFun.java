@@ -37,6 +37,9 @@ public class MusicFun extends PApplet {
     FFT fft;
     Boolean keyTemp;
 
+    Boolean DEBUG = false;
+
+
     DoubleClick doubleClick;
     BeatDetect beatDetect;
     BeatListener beatListener;
@@ -65,7 +68,6 @@ public class MusicFun extends PApplet {
     MovableBox selectionTarget = null;
     VoiceRecordingManager voiceSampleList;
 
-    Sample metronome;
 
     RecordButton recordButton;
 
@@ -174,7 +176,6 @@ public class MusicFun extends PApplet {
 
 
         voiceSampleList = new VoiceRecordingManager();
-        metronome = samples.getMetronome();
 
 
         count = new CountdownAnimation(this, info);
@@ -194,7 +195,7 @@ public class MusicFun extends PApplet {
 
     private void setupMovables() {
         movables = new ArrayList<MovableBox>();
-        int sizePadding = 50;
+        int sizePadding = 80;
         int numVerticalMax = getHeight()/sizePadding;
         int i = 0;
         int row = 0;
@@ -203,7 +204,7 @@ public class MusicFun extends PApplet {
                 row++;
                 i=0;
             }
-            MovableBox temp = new MovableBox(this,info,sizePadding + row*sizePadding,i*sizePadding + sizePadding,25,25);
+            MovableBox temp = new MovableBox(this,info,sizePadding + row*sizePadding,i*sizePadding + sizePadding,MovableBox.NODE_WIDTH,MovableBox.NODE_WIDTH);
             temp.setSound(s);
             if (s.getSimpleFilename().equals("kick1.wav")) {
                 System.out.println("needs more kick");
@@ -235,7 +236,10 @@ public class MusicFun extends PApplet {
         recordButton.draw();
 
         count.drawTimed();
-        beatCount.draw();
+
+        if (DEBUG) {
+            beatCount.draw();
+        }
 
         //handles the case of clicking reset when it was already the last one clicked
         if (needClear) {
@@ -274,7 +278,6 @@ public class MusicFun extends PApplet {
             int result = ((currentTime) % (playing)) - soundDelay;
             if ((result < LAG_COMPENSATION || result > playing - LAG_COMPENSATION) && result >= 0) {
                 m.playsound();
-                System.out.println("playing sound");
                 //System.out.println("time is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
             } else {
                 //System.out.println("MISSED is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
@@ -370,8 +373,7 @@ public class MusicFun extends PApplet {
             rect(0, 0, 25, 25);
         }
 
-        boolean debug = true;
-        if (debug) {
+        if (DEBUG) {
             float time = millis();
             textSize(12);
 
@@ -463,28 +465,28 @@ public class MusicFun extends PApplet {
 
                     line(p1x, p1y, p2x, p2y);
 
-                    text("connecting " + box.hashCode() + " to " + box.getChild().hashCode(), (p1x + p2x) / 2.0f, (p1y + p2y) / 2.0f);
+                    if (DEBUG) {
 
-                    MovableBox temp1 = box.getChild();
-                    MovableBox temp2 = box.getParent();
+                        text("connecting " + box.hashCode() + " to " + box.getChild().hashCode(), (p1x + p2x) / 2.0f, (p1y + p2y) / 2.0f);
+
+                        MovableBox temp1 = box.getChild();
+                        MovableBox temp2 = box.getParent();
 
 
+                        if (temp1 != null && temp2 != null) {
+                            MovableBox temp3 = temp1.getParent();
+                            MovableBox temp4 = temp2.getChild();
 
-                    if (temp1 != null && temp2 != null) {
-                        MovableBox temp3 = temp1.getParent();
-                        MovableBox temp4 = temp2.getChild();
-
-                        if (temp3 != null && temp4 != null) {
-                            text("\n\n\n(reverse) connecting:\n 'child's parent'" + temp3.hashCode() + " to 'parents child'" + temp4.hashCode(), (p1x + p2x) / 2.0f, (p1y + p2y) / 2.0f);
+                            if (temp3 != null && temp4 != null) {
+                                text("\n\n\n(reverse) connecting:\n 'child's parent'" + temp3.hashCode() + " to 'parents child'" + temp4.hashCode(), (p1x + p2x) / 2.0f, (p1y + p2y) / 2.0f);
+                            }
                         }
                     }
 
                 }
             }
         }
-        if (test != null) {
-            System.out.println("wtf");
-        }
+
         if (size != list.size()) {
             System.out.println("we removed some stuff!");
         }
@@ -635,7 +637,7 @@ public class MusicFun extends PApplet {
                     System.out.println("samples after: " + samples.getNumSamples());
 
                     //update movables
-                    MovableBox temp = new MovableBox(this,info,800,600,40,40);
+                    MovableBox temp = new MovableBox(this,info,800,600,MovableBox.BIG_BUTTON,MovableBox.BIG_BUTTON);
 
                     temp.setSound(samples.getNewestSample());
 
@@ -851,7 +853,7 @@ public class MusicFun extends PApplet {
                 System.out.println("samples after: " + samples.getNumSamples());
 
                 //update movables
-                MovableBox temp = new MovableBox(this, info, 800, 600, 40, 40);
+                MovableBox temp = new MovableBox(this, info, recordButton.getxLocation() - MovableBox.BIG_BUTTON, recordButton.getyLocation() + MovableBox.BIG_BUTTON, MovableBox.RECORDED_WIDTH, MovableBox.RECORDED_WIDTH);
                 temp.setRecording(true);
                 temp.setSound(samples.getNewestSample());
                 movables.add(temp);
@@ -943,10 +945,8 @@ public class MusicFun extends PApplet {
                     float gain = 0.0f;
 
 
-                    gain = map(distance, 0, r.getLength(), -24.0f, 0.0f);
+                    gain = map(distance, 0, r.getLength(), -12.0f, 0.0f);
                     target.getSound().setGain(gain);
-                    System.out.println("setting gain to " + gain);
-
 
 
 

@@ -59,7 +59,7 @@ public class RecordButton extends MovableBox {
 
         p.ellipse(0, 0, this.width, this.height);
         p.fill(255);
-        p.text(text,0 - width/4,0);
+        p.text(text,0,0);
         p.popMatrix();
 
         if (sound != null && sound.getSimpleFilename() != null) {

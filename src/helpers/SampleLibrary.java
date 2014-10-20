@@ -55,7 +55,7 @@ public class SampleLibrary {
         whichRotor = RotatePlayers.TOP_RIGHT;
         addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion\\closed_hihat1.wav",0, 80);
 
-        addToLibrary(library1, rotors.getRotators().get(RotatePlayers.BOTTOM_LEFT), "bass\\kick2.wav",50 + 100/8.0f + (100/16.0f), 80);
+        addToLibrary(library1, rotors.getRotators().get(RotatePlayers.BOTTOM_LEFT), "bass\\kick1.wav",50 + 100/8.0f + (100/16.0f), 80);
     }
 
     private void generatePresetTwo(RotatePlayers rotors) {
@@ -65,7 +65,7 @@ public class SampleLibrary {
         libraries.add(library1);
 
         int whichRotor = RotatePlayers.BOTTOM_RIGHT;
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion\\reverb_snare.wav",0, 100);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion\\reverb_clap.wav",0, 100);
         addToLibrary(library1, rotors.getRotators().get(whichRotor), "layers\\slightly_sample1.wav",25, 90);
         addToLibrary(library1, rotors.getRotators().get(whichRotor), "layers\\noisy_synth_da_chord.wav",50, 90);
         addToLibrary(library1, rotors.getRotators().get(whichRotor), "bass\\kick1.wav",50, 100);
@@ -92,7 +92,7 @@ public class SampleLibrary {
         Sample s = new Sample(info, fileRoot + filepath);
         if (s != null) {
             Point2D.Float point = whichRotor.getPositionFromPercentage(pathPercent,volumePercent);
-            MovableBox m = new MovableBox(p, info, (float) point.getX(), (float) point.getY(), 25, 25);
+            MovableBox m = new MovableBox(p, info, (float) point.getX(), (float) point.getY(), MovableBox.NODE_WIDTH, MovableBox.NODE_WIDTH);
             m.setSound(s);
             library.add(m);
         } else {

@@ -121,9 +121,9 @@ public class Rotater extends ProcessingAnimation{
         getSlider().setxLocation(x);
 
         if (y < p.getHeight()/2) {
-            getSlider().setyLocation(y - getLength() - 50);
+            getSlider().setyLocation(y - getLength() - 60);
         } else {
-            getSlider().setyLocation(y + getLength() + 30);
+            getSlider().setyLocation(y + getLength() + 50);
         }
     }
 

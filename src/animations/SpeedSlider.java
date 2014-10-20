@@ -16,7 +16,7 @@ public class SpeedSlider extends ProcessingAnimation {
 
     float xLocation;
     float yLocation;
-    int segment = 50;
+    int segment = 60;
     int totalWidth = (numSettings-1) * segment;
 
     MovableBox slider;
@@ -42,7 +42,7 @@ public class SpeedSlider extends ProcessingAnimation {
             this.position = 0;
         }
         hasClicked = false;
-        slider = new SliderBox(p, info, (float)(xLocation + (position * segment)), yLocation, 20, 20);
+        slider = new SliderBox(p, info, (float)(xLocation + (position * segment)), yLocation, MovableBox.NODE_WIDTH, MovableBox.NODE_WIDTH);
 
     }
     @Override
