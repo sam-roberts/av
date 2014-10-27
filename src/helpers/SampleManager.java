@@ -3,6 +3,7 @@ package helpers;
 import ddf.minim.AudioPlayer;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -20,7 +21,7 @@ public class SampleManager {
     ArrayList<AudioPlayer> audioPlayers;
     Sample newestSample;
 
-    public SampleManager(PublicInformation info, String filepath) {
+    public SampleManager(PublicInformation info, String filepath) throws FileNotFoundException {
         this.filepath = filepath;
         folder = new File(filepath);
         files = new HashMap<String, ArrayList<Sample>>();
@@ -32,7 +33,7 @@ public class SampleManager {
 
     }
 
-    public void loadAllSamplesInFolder(final File folder) {
+    public void loadAllSamplesInFolder(final File folder) throws FileNotFoundException {
 
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
@@ -52,7 +53,7 @@ public class SampleManager {
         return i;
     }
 
-    public void insertIndividualItem(String filepath) {
+    public void insertIndividualItem(String filepath) throws FileNotFoundException {
         File f = new File(filepath);
         File folderName = f.getParentFile();
         if (f != null && folderName != null){
@@ -62,7 +63,7 @@ public class SampleManager {
         }
 
     }
-    private void insertItem(File fileEntry, File folder) {
+    private void insertItem(File fileEntry, File folder) throws FileNotFoundException {
         Sample s = new Sample(info, fileEntry.getAbsolutePath());
         s.setCategory(folder.getName());
         if (files.containsKey(folder.getName())) {

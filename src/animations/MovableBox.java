@@ -1,10 +1,17 @@
 package animations;
 
+import com.sun.javaws.exceptions.MissingFieldException;
+import geomerative.RG;
+import geomerative.RShape;
 import helpers.PublicInformation;
 import helpers.Sample;
 import processing.core.PApplet;
+import processing.core.PImage;
+import processing.core.PShape;
 
 import java.awt.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -14,7 +21,11 @@ import java.util.Iterator;
 public class MovableBox extends ProcessingAnimation {
 
     public static final int BIG_BUTTON = 70;
-    public static final int RECORDED_WIDTH = 60;
+    public static final int RECORDED_WIDTH = 250;
+    public static final int RECORDED_HEIGHT = 100;
+    public static final int NODE_WIDTH = 50;
+
+
     float xLocation;
     float yLocation;
     int width;
@@ -31,7 +42,6 @@ public class MovableBox extends ProcessingAnimation {
     private boolean lockXMovement;
     private boolean recording;
 
-    public static final int NODE_WIDTH = 50;
 
 
     MovableBox child;
@@ -66,6 +76,9 @@ public class MovableBox extends ProcessingAnimation {
 
     ProcessingAnimation extraAnimation;
 
+    PImage extraAnimation2;
+
+
     float xAcceleration = 0;
     float yAcceleration = 0;
     boolean dragged = false;
@@ -74,6 +87,9 @@ public class MovableBox extends ProcessingAnimation {
     private float initialSpawnY;
 
     final private float GRAVITY_THRESHOLD = 0.01f;
+
+    RShape graphic;
+    PShape graphic2;
 
 
     Rotater hitBy = null;
@@ -101,6 +117,11 @@ public class MovableBox extends ProcessingAnimation {
         original = true;
 
         toDelete = false;
+        graphic = null;
+
+
+
+
 
 
 
@@ -164,11 +185,24 @@ public class MovableBox extends ProcessingAnimation {
         p.translate(getxLocation(), getyLocation(), 1);
 
         p.ellipse(0, 0, this.width, this.height);
+        p.shapeMode(p.CENTER);
+        if (graphic2 != null) {
+            p.fill(0);
+            p.stroke(0);
+
+
+            //graphic.draw();
+
+            p.shape(graphic2, 0,0,getWidth()*0.65f, getWidth()*0.65f);
+
+
+
+        }
         p.popMatrix();
         if (getSound() != null) {
             if (sound.getSimpleFilename() != null) {
                 p.fill(0);
-                String text = sound.getSimpleFilename();
+                String text = sound.getCategory();
                 /*
 
                 text = text.concat( "\nhash: " + this.hashCode() + "\n");
@@ -181,7 +215,7 @@ public class MovableBox extends ProcessingAnimation {
                 }
                 */
                 //TODO: needed?
-                //p.text(text, xLocation, yLocation - getWidth());
+               //p.text(text, xLocation, yLocation - getWidth());
             }
         }
 
@@ -248,11 +282,29 @@ public class MovableBox extends ProcessingAnimation {
     public void setSound(Sample sound) {
         this.sound = sound;
         if (sound.getCategory() != null) {
-            this.initialFill = colourManager.getRandomColor(sound.getCategory().hashCode());
+            this.initialFill = colourManager.getRandomColor(sound.getCategory());
+            this.fill = initialFill;
             System.out.println(sound.getCategory() + sound.getCategory().hashCode());
+
+
+
+            File f = new File(info.getRootDirectory() + "images\\" + sound.getCategory()+".svg");
+
+            if (f.isFile()) {
+                //graphic = RG.loadShape(f.getAbsolutePath());
+                graphic2 = p.loadShape(f.getAbsolutePath());
+
+                graphic2.setFill(Color.WHITE.getRGB());
+                graphic2.setStroke(Color.WHITE.getRGB());
+
+            }
+
+
         }
 
         extraAnimation = new fftAnimation(p, info, getSound());
+
+
 
         //System.out.println("sound hashes" + sound.hashCode());
 
@@ -409,11 +461,12 @@ public class MovableBox extends ProcessingAnimation {
         return recording;
     }
 
-    public MovableBox cloneThis() {
+    public MovableBox cloneThis() throws FileNotFoundException {
         MovableBox temp = new MovableBox(p,info,getxLocation(),getyLocation(),initialWidth,initialHeight);
         temp.setClone(true);
         Sample copy = getSound();
         Sample newSound = new Sample(info, copy.getFilepath());
+        newSound.setCategory(copy.getCategory());
         temp.setSound(newSound);
         temp.overrideFill(getInitialFill());
         temp.setOriginal(false);
@@ -484,7 +537,15 @@ public class MovableBox extends ProcessingAnimation {
         MovableBox iter = this;
         MovableBox iter2 = this;
 
-        while (iter2.getChild() != null) {
+        if (iter == null || iter2 == null) {
+            throw  new RuntimeException("getLastChild of a null object");
+        }
+
+        if (iter2.getChild() == null) {
+            return this;
+        }
+
+        while (iter2 != null) {
             iter = iter.getChild();
             iter2 = iter.getChild();
 

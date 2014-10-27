@@ -7,15 +7,19 @@ import ddf.minim.AudioRecorder;
 import ddf.minim.Minim;
 import ddf.minim.analysis.BeatDetect;
 import ddf.minim.analysis.FFT;
+import geomerative.RG;
+import geomerative.RShape;
 import helpers.*;
 import processing.core.PApplet;
 import processing.core.PFont;
+import processing.core.PImage;
 import themidibus.*; //Import the library
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -69,6 +73,11 @@ public class MusicFun extends PApplet {
     VoiceRecordingManager voiceSampleList;
 
 
+    PFont LARGE_TEXT;
+    PFont MEDIUM_TEXT;
+
+
+
     RecordButton recordButton;
 
     BeatCounterAnimation beatCount;
@@ -82,6 +91,11 @@ public class MusicFun extends PApplet {
     boolean needClear = false;
 
     MenuUI menuUI;
+
+    PImage test;
+
+
+
     public static void main(String args[]) {
         PApplet.main(new String[] { "--present", "main.MusicFun" });
     }
@@ -95,20 +109,28 @@ public class MusicFun extends PApplet {
         size(1920, 1080, P3D);
         background(255);
         noStroke();
-        smooth();
+
         keyTemp = false;
-        PFont font36 = createFont("Arial", 36, true);
-        textFont(font36);
+        PFont LARGE_TEXT = createFont("Arial", 30, true);
+        PFont MEDIUM = createFont("Arial", 24, true);
+
+        textFont(LARGE_TEXT);
         info = new PublicInformation(DATA_PATH);
         info.setTempo(120);
         info.setMidi(myBus);
         info.setMinim(minim);
         info.setAudioOut(out);
 
+        RG.init(this);
+        smooth(6);
+        //RG.ignoreStyles();
+
 
         cm = new ColourManager();
         info.setColourManager(cm);
         doubleClick = new DoubleClick();
+
+        test = loadImage("D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\images\\soft_shadow.png");
 
         //clean up the jams
         File recordDir = new File(DATA_PATH + "recorded\\");
@@ -158,7 +180,11 @@ public class MusicFun extends PApplet {
 
 
         synths = new Synths(info);
-        samples = new SampleManager(info, DATA_PATH + "sounds");
+        try {
+            samples = new SampleManager(info, DATA_PATH + "sounds");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         //getClass().getClassLoader().getResource()
         //samples = new SampleManager(info, "src\\data\\sounds");
 
@@ -169,7 +195,11 @@ public class MusicFun extends PApplet {
         rotateVoice = new RotateVoiceInput(this, info);
         polygonAnimation = new PolygonAnimation(this,info);
         rotatePlayers = new RotatePlayers(this,info);
-        sampleLibrary = new SampleLibrary(this, rotatePlayers, info);
+        try {
+            sampleLibrary = new SampleLibrary(this, rotatePlayers, info);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         activeSounds = new ArrayList<MovableBox>();
 
         setupMovables();
@@ -204,17 +234,15 @@ public class MusicFun extends PApplet {
                 row++;
                 i=0;
             }
-            MovableBox temp = new MovableBox(this,info,sizePadding + row*sizePadding,i*sizePadding + sizePadding,MovableBox.NODE_WIDTH,MovableBox.NODE_WIDTH);
+            MovableBox temp = new MovableBox(this,info,MovableBox.NODE_WIDTH + row*sizePadding,i*sizePadding + sizePadding,MovableBox.NODE_WIDTH,MovableBox.NODE_WIDTH);
             temp.setSound(s);
-            if (s.getSimpleFilename().equals("kick1.wav")) {
-                System.out.println("needs more kick");
-            }
+
             movables.add(temp);
 
             i++;
 
         }
-        recordButton = new RecordButton(this,info,getWidth()-100,getHeight()/4,100,100);
+        recordButton = new RecordButton(this,info,getWidth()-400,getHeight()/6,MovableBox.RECORDED_WIDTH,MovableBox.RECORDED_HEIGHT);
         recordButton.setMovable(false);
 
         movables.add(recordButton);
@@ -290,6 +318,7 @@ public class MusicFun extends PApplet {
 
 
         menuUI.draw();
+
 
 
 
@@ -373,12 +402,21 @@ public class MusicFun extends PApplet {
             rect(0, 0, 25, 25);
         }
 
+        int i = 0;
+        for (String category: cm.getSeedMap().keySet()) {
+            Color c = cm.getRandomColor(category);
+            fill(c.getRGB());
+
+            text(category, 400, 20 + (i*20));
+            i++;
+        }
+
         if (DEBUG) {
             float time = millis();
             textSize(12);
 
             fill(Color.black.getRGB());
-            text("frame rate: " + frameRate + " time is " + time + " / tempo is " + info.getTempo(), getWidth()/2 + 400, 20);
+            text("frame rate: " + Math.round(frameRate) + " time is " + time + " / tempo is " + info.getTempo(), getWidth()/2 + 600, 20);
 
             pushMatrix();
 
@@ -462,7 +500,7 @@ public class MusicFun extends PApplet {
 
                     float p1y = box.getyLocation();
                     float p2y = box.getChild().getyLocation();
-
+                    stroke(box.getFill().darker().getRGB());
                     line(p1x, p1y, p2x, p2y);
 
                     if (DEBUG) {
@@ -633,7 +671,11 @@ public class MusicFun extends PApplet {
 
                     //add to sample manager?
                     System.out.println("samples before: " + samples.getNumSamples());
-                    samples.insertIndividualItem(voiceRecordingFilepath);
+                    try {
+                        samples.insertIndividualItem(voiceRecordingFilepath);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                     System.out.println("samples after: " + samples.getNumSamples());
 
                     //update movables
@@ -731,20 +773,33 @@ public class MusicFun extends PApplet {
         if (dragTarget == null) {
             findDragTarget(sampleLibrary.getCurrentLibraryList());
         }
-
-        if (dragTarget != null) {
-            if (doubleClick.isDoubleClick(dragTarget, this.millis()) && dragTarget.isLockXMovement() == false) {
+        MovableBox tempDragTarget = dragTarget;
+        if (tempDragTarget != null) {
+            if (doubleClick.isDoubleClick(tempDragTarget, this.millis()) && tempDragTarget.isLockXMovement() == false) {
                 doubleClick.reset();
                 System.out.println("double click");
 
                 //TODO: add copy
-                MovableBox temp;
-                if (dragTarget.getLastChild() == null) {
-                    temp = dragTarget.cloneThis();
-                    dragTarget.setChild(temp);
+                MovableBox temp= null;
+                if (tempDragTarget == null) {
+                    throw new RuntimeException("why is dragtarget null");
+                }
+                if (tempDragTarget.getLastChild() == null) {
+                    try {
+                        temp = tempDragTarget.cloneThis();
+                        tempDragTarget.setChild(temp);
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                 } else {
-                    temp = dragTarget.getLastChild().cloneThis();
-                    dragTarget.getLastChild().setChild(temp);
+                    try {
+                        temp = tempDragTarget.getLastChild().cloneThis();
+                        tempDragTarget.getLastChild().setChild(temp);
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
 
                 }
 
@@ -760,7 +815,7 @@ public class MusicFun extends PApplet {
                     temp.setyLocation(temp.getyLocation() - 50);
                 }
 
-                if (movables.contains(dragTarget)) {
+                if (movables.contains(tempDragTarget)) {
                     movables.add(temp);
 
                 } else {
@@ -770,9 +825,9 @@ public class MusicFun extends PApplet {
 
 
             } else {
-                doubleClick.setClick(dragTarget, this.millis());
+                doubleClick.setClick(tempDragTarget, this.millis());
 
-                dragTarget.playsound();
+                    tempDragTarget.playsound();
             }
         } else {
             pressedUI();
@@ -783,6 +838,7 @@ public class MusicFun extends PApplet {
 
     private void pressedUI() {
         Point mouseLocation = getMousePosition();
+        if (mouseLocation != null) {
         if (menuUI.getWholeSize().contains(mouseLocation)) {
             menuUI.clickedAt(mouseLocation);
 
@@ -797,7 +853,7 @@ public class MusicFun extends PApplet {
                 }
             }
 
-
+        }
 
 
         }
@@ -820,7 +876,11 @@ public class MusicFun extends PApplet {
         if (dragTarget != null) {
             dragTarget.setDragged(false);
             dragTarget.release();
-            doReleaseStuff();
+            try {
+                doReleaseStuff();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
             dragTarget = null;
         }
 
@@ -828,7 +888,7 @@ public class MusicFun extends PApplet {
 
     }
 
-    private void doReleaseStuff() {
+    private void doReleaseStuff() throws FileNotFoundException {
         //System.out.println("yolo " + movables.size());
         if (dragTarget.equals(recordButton)) {
             System.out.println("pressed record button");
@@ -853,7 +913,7 @@ public class MusicFun extends PApplet {
                 System.out.println("samples after: " + samples.getNumSamples());
 
                 //update movables
-                MovableBox temp = new MovableBox(this, info, recordButton.getxLocation() - MovableBox.BIG_BUTTON, recordButton.getyLocation() + MovableBox.BIG_BUTTON, MovableBox.RECORDED_WIDTH, MovableBox.RECORDED_WIDTH);
+                MovableBox temp = new MovableBox(this, info, recordButton.getxLocation() - MovableBox.RECORDED_WIDTH, recordButton.getyLocation() + MovableBox.RECORDED_HEIGHT, MovableBox.BIG_BUTTON, MovableBox.BIG_BUTTON);
                 temp.setRecording(true);
                 temp.setSound(samples.getNewestSample());
                 movables.add(temp);

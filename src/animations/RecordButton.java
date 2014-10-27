@@ -2,6 +2,8 @@ package animations;
 
 import helpers.PublicInformation;
 import processing.core.PApplet;
+import processing.core.PImage;
+import processing.core.PShape;
 
 import java.awt.*;
 
@@ -13,58 +15,45 @@ public class RecordButton extends MovableBox {
 
     boolean isRecording = false;
     String text = "RECORD";
+
+    PShape microphone;
+
+    float scaleFactor = 0.15f;
+    float micWidth;
+    float micHeight;
     public RecordButton(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
         super(p, info, xLocation, yLocation, width, height);
+
+        microphone = p.loadShape(info.getRootDirectory() + "images\\mic.svg");
+        microphone.setFill(Color.WHITE.getRGB());
+        microphone.setStroke(Color.WHITE.getRGB());
+
+        micWidth = microphone.getWidth() * scaleFactor;
+        micHeight = microphone.getHeight() * scaleFactor;
+
+        initialFill = info.getColourManager().getRandomColor("record");
+        setFill(initialFill);
     }
 
     @Override
     protected void drawAnimation() {
-
-        /*
-        if (isHit()) {
-            setFill(Color.red);
-            pressed();
-            if (playsound) {
-                getSound().setLoop(false);
-                (new Thread(getSound())).start();
-            }
-            playsound = false;
-
-
-        } else {
-            release();
-            //setFill(initialFill);
-            playsound = true;
-        }
-
-        */
-        if (getSound() != null) {
-            if (getSound().getGain() < 0) {
-                //System.out.println("this shit has gain" + getSound().getGain());
-                //System.out.println("width was " + this.width);
-
-                this.opacity = (int) p.map(getSound().getGain(), -12, 0, 50, 255);
-                this.width = (int) p.map(this.opacity, 50, 255, this.width / 2, this.width * 2);
-                this.height = (int) p.map(this.opacity, 50, 255, this.height / 2, this.height * 2);
-            } else {
-                this.opacity = 255;
-
-            }
-        }
 
         p.fill(getFill().getRGB(), this.opacity);
         p.noStroke();
         p.pushMatrix();
         p.translate(xLocation, yLocation);
 
-        p.ellipse(0, 0, this.width, this.height);
+
+        p.rect(0, 0, this.width, this.height);
+
+
+        p.shape(microphone, 15,(getHeight() / 2.0f) - (micWidth / 4.0f),micWidth, micHeight);
         p.fill(255);
-        p.text(text,0,0);
+        p.textSize(30);
+        p.text(text, micWidth+120,getHeight()/2);
+
         p.popMatrix();
 
-        if (sound != null && sound.getSimpleFilename() != null) {
-            p.text(sound.getSimpleFilename(), xLocation,yLocation-20);
-        }
 
 
     }
@@ -79,6 +68,7 @@ public class RecordButton extends MovableBox {
     public void stopRecording() {
         isRecording = false;
         text="RECORD";
+        setFill(initialFill);
         return;
     }
 }

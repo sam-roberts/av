@@ -50,11 +50,22 @@ public class Rotater extends ProcessingAnimation{
         int musicPump = (int) p.map(info.getTempo(),info.TEMPO_MIN,info.TEMPO_MAX,0,255);
 
 
-        Color c = new Color(musicPump, 255-musicPump,150);
-        setFill(c);
+        int cRed = 128, cGreen = 128, cBlue = 128;
+        if (info.getTempo() > 120) {
+            cRed = (int) p.map(info.getTempo(),120,info.TEMPO_MAX, 128, ColourManager.MENU_RED.getRed());
+            cGreen = (int) p.map(info.getTempo(),120,info.TEMPO_MAX, 128, ColourManager.MENU_RED.getGreen());
+            cBlue = (int) p.map(info.getTempo(),120,info.TEMPO_MAX, 128, ColourManager.MENU_RED.getBlue());
+
+        } else {
+            cRed = (int) p.map(info.getTempo(),info.TEMPO_MIN,120, ColourManager.MENU_BLUE.getRed(), 128);
+            cGreen = (int) p.map(info.getTempo(),info.TEMPO_MIN,120, ColourManager.MENU_BLUE.getGreen(), 128);
+            cBlue = (int) p.map(info.getTempo(),info.TEMPO_MIN, 120, ColourManager.MENU_BLUE.getBlue(), 128);
+        }
 
 
-        p.strokeWeight(5);
+        //Color c = new Color(musicPump, 255-musicPump,150);
+        Color c = new Color(cRed, cGreen, cBlue);
+
 
         drawGrid();
 
@@ -64,12 +75,14 @@ public class Rotater extends ProcessingAnimation{
 
         p.pushMatrix();
         p.translate(getxOrigin(), getyOrigin(),0);
-        p.stroke(160);
-
+        p.stroke(120);
         p.rotate(p.radians(rotateDegrees-90));
+        p.strokeWeight(5);
 
         p.line(0, 0, getLength(), 0);
-        p.stroke(255);
+        p.stroke(c.getRGB());
+        p.strokeWeight(2);
+
         p.fill(255);
         p.ellipse(0,0,getLength()*2,getLength()*2);
 
@@ -84,6 +97,7 @@ public class Rotater extends ProcessingAnimation{
         //draw the grid
         p.pushMatrix();
         p.translate(getxOrigin(), getyOrigin());
+        p.strokeWeight(5);
         p.stroke(235);
 
         int nSegments = 8;

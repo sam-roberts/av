@@ -1,10 +1,13 @@
 package helpers;
 
 import animations.ProcessingAnimation;
+import com.sun.javaws.exceptions.MissingFieldException;
 import ddf.minim.AudioEffect;
 import ddf.minim.AudioOutput;
 import ddf.minim.AudioPlayer;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,19 +33,28 @@ public class Sample implements Runnable{
 
     boolean clone;
 
-    public Sample(PublicInformation info,String filepath) {
-        this.filepath = filepath;
-        this.info = info;
-        this.delay = 0;
-        myPlayer = info.getMinim().loadFile(filepath);
-        String regex = "(\\w*)\\.wav$";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher m = pattern.matcher(getFilepath());
-        if (m.find()) {
-            for (int i = 0; i < m.groupCount(); i++) {
-                simpleFilename = m.group(i);
-                simpleFilename = simpleFilename.replaceAll("_", " ");
+    public Sample(PublicInformation info,String filepath) throws FileNotFoundException {
+        File f = new File(filepath);
+        if (f.isFile()) {
+            this.filepath = filepath;
+            this.info = info;
+            this.delay = 0;
+            myPlayer = info.getMinim().loadFile(filepath);
+            String regex = "(\\w*)\\.wav$";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher m = pattern.matcher(getFilepath());
+
+            this.setCategory(f.getParentFile().getName());
+
+
+            if (m.find()) {
+                for (int i = 0; i < m.groupCount(); i++) {
+                    simpleFilename = m.group(i);
+                    simpleFilename = simpleFilename.replaceAll("_", " ");
+                }
             }
+        } else {
+            throw new FileNotFoundException("coudn't find the sample");
         }
 
     }
