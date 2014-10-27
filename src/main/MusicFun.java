@@ -97,7 +97,8 @@ public class MusicFun extends PApplet {
     boolean hadSetup = false;
     long lastmemory = 0;
     int memoryTime = 0;
-
+    private boolean touchScreen = true;
+    Point lastMouse = null;
 
 
     public static void main(String args[]) {
@@ -1008,6 +1009,31 @@ public class MusicFun extends PApplet {
         checkHover(movables);
         checkHover(sampleLibrary.getCurrentLibraryList());
         checkHoverTwo(menuUI.getButtons());
+
+        Point p = getMousePosition();
+
+        if (lastMouse == null && p != null) {
+            lastMouse = p;
+        }
+        if (touchScreen) {
+            if (p != null && lastMouse != null) {
+
+
+                if (dragTarget == null) {
+                    mousePressed();
+                } else {
+
+                    if (lastMouse.distance(p) < 30) {
+                        mouseDragged();
+                    } else {
+                        mouseReleased();
+                    }
+                }
+                lastMouse = p;
+
+            }
+        }
+
 
 
     }
