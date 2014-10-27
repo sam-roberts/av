@@ -143,17 +143,20 @@ public class MovableBox extends ProcessingAnimation {
             setyLocation((getyLocation() + getyAcceleration()));
         }
 
+        if (fadeAnimations.size() > 0) {
+            Iterator<FadeAnimation> it = fadeAnimations.iterator();
 
-        Iterator<FadeAnimation> it = fadeAnimations.iterator();
-        while (it.hasNext()) {
-            FadeAnimation f = it.next();
-            if (f.isStartAnimation()) {
-                f.drawAnimation();
-            } else {
-                it.remove();
+            while (it.hasNext()) {
+                FadeAnimation f = it.next();
+                if (f.isStartAnimation()) {
+                    f.drawAnimation();
+                } else {
+
+                    it.remove();
+
+                }
             }
         }
-
 
 
 
@@ -347,6 +350,7 @@ public class MovableBox extends ProcessingAnimation {
     }
 
     public void playsound() {
+
         if (this.isVisible() && getSound() != null) {
             getSound().setLoop(false);
 
@@ -360,6 +364,7 @@ public class MovableBox extends ProcessingAnimation {
             }
         }
         //playsound = false;
+
 
     }
 

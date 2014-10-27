@@ -1,5 +1,7 @@
 package animations;
 
+import ddf.minim.AudioRecorder;
+import ddf.minim.analysis.FFT;
 import helpers.PublicInformation;
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -21,6 +23,15 @@ public class RecordButton extends MovableBox {
     float scaleFactor = 0.15f;
     float micWidth;
     float micHeight;
+
+    FFT fft;
+
+
+
+
+    int count;
+    boolean countdownFinished = false;
+    int startTime;
     public RecordButton(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
         super(p, info, xLocation, yLocation, width, height);
 
@@ -33,10 +44,46 @@ public class RecordButton extends MovableBox {
 
         initialFill = info.getColourManager().getRandomColor("record");
         setFill(initialFill);
+        count = 3;
+        fft = info.getInputFFT();
+
     }
 
     @Override
     protected void drawAnimation() {
+
+        if (isRecording) {
+
+
+            p.pushMatrix();
+            p.translate(p.getWidth() / 2.0f, p.getHeight() / 2.0f);
+
+            p.fill(0);
+            p.textSize(72);
+            if (count != 0) {
+                System.out.println("write the countdown");
+
+
+                p.text(count, 0, 0);
+                if (p.millis() - startTime >= 1000) {
+                    count--;
+                    startTime = p.millis();
+                }
+                text = "Recording in..." + count;
+            } else {
+                p.fill(Color.red.getRGB());
+                p.text("Recording", 0, 0);
+
+                text = "Recording";
+                countdownFinished=true;
+            }
+
+            p.popMatrix();
+
+
+            drawVisual();
+
+        }
 
         p.fill(getFill().getRGB(), this.opacity);
         p.noStroke();
@@ -56,11 +103,45 @@ public class RecordButton extends MovableBox {
 
 
 
+
+
+    }
+
+    private void drawVisual() {
+
+
+        //logarithmic visualiser
+        //fill(255);
+        // perform a forward FFT on the samples in jingle's mix buffer
+        // note that if jingle were a MONO file, this would be the same as using jingle.left or jingle.right
+        fft.forward(info.getInput().mix);
+        int w = (fft.specSize()/128);
+
+        p.noStroke();
+        for(int i = 0; i < fft.avgSize(); i++)
+        {
+            // draw a rectangle for each average, multiply the value by 5 so we can see it better
+            p.rect(i*w + p.getWidth()/2.0f - 200, p.getHeight() - 400, i*w + w + p.getWidth()/2.0f - 200, p.getHeight() - fft.getAvg(i)*5 - 400);
+        }
+
+
+
+
+    }
+
+    public boolean isCountdownFinished() {
+        return countdownFinished;
+    }
+
+    public void setCountdownFinished(boolean countdownFinished) {
+        this.countdownFinished = countdownFinished;
     }
 
     public void startRecording() {
         isRecording = true;
         text="recording...";
+        startTime = p.millis();
+
         setFill(Color.red);
         return;
     }
@@ -69,6 +150,8 @@ public class RecordButton extends MovableBox {
         isRecording = false;
         text="RECORD";
         setFill(initialFill);
+        count = 3;
+        countdownFinished = false;
         return;
     }
 }

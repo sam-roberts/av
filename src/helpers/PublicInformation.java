@@ -2,8 +2,11 @@ package helpers;
 
 import animations.ColourManager;
 import animations.LinkedAnimations;
+import animations.RotateVoiceInput;
+import ddf.minim.AudioInput;
 import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
+import ddf.minim.analysis.FFT;
 import processing.core.PImage;
 import themidibus.MidiBus;
 
@@ -23,6 +26,9 @@ public class PublicInformation {
     private final String rootDirectory;
     private LinkedAnimations links;
     private PImage circle;
+    private AudioInput audioInput;
+    private FFT inputFFT;
+    private AudioInput input;
 
     public PublicInformation(String rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -98,5 +104,25 @@ public class PublicInformation {
 
     public void setCircle(PImage circle) {
         this.circle = circle;
+    }
+
+    public AudioInput getAudioInput() {
+        return audioInput;
+    }
+
+    public void setInputFFT(FFT inputFFT) {
+        this.inputFFT = inputFFT;
+    }
+
+    public FFT getInputFFT() {
+        return inputFFT;
+    }
+
+    public void setInput(AudioInput input) {
+        this.input = input;
+    }
+
+    public AudioInput getInput() {
+        return input;
     }
 }

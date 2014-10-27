@@ -94,6 +94,10 @@ public class MusicFun extends PApplet {
 
     PImage test;
 
+    boolean hadSetup = false;
+    long lastmemory = 0;
+    int memoryTime = 0;
+
 
 
     public static void main(String args[]) {
@@ -101,126 +105,128 @@ public class MusicFun extends PApplet {
     }
 
     public void setup() {
+        if (! hadSetup) {
+            System.out.println("SETUPPPPPPPPPPPPPPPPPPPPPPPPP");
+            minim = new Minim(this);
+            myBus = new MidiBus(this, 0, 3); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
+
+            size(1920, 1080, P3D);
+            background(255);
+            noStroke();
 
 
-        minim = new Minim(this);
-        myBus = new MidiBus(this, 0, 3); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
+            keyTemp = false;
+            PFont LARGE_TEXT = createFont("Arial", 30, true);
+            PFont MEDIUM = createFont("Arial", 24, true);
 
-        size(1920, 1080, P3D);
-        background(255);
-        noStroke();
+            textFont(LARGE_TEXT);
+            info = new PublicInformation(DATA_PATH);
+            info.setTempo(120);
+            info.setMidi(myBus);
+            info.setMinim(minim);
+            info.setAudioOut(out);
 
-        keyTemp = false;
-        PFont LARGE_TEXT = createFont("Arial", 30, true);
-        PFont MEDIUM = createFont("Arial", 24, true);
+            PImage circle = loadImage(info.getRootDirectory() + "images\\soft_shadow.png");
+            info.setCircle(circle);
 
-        textFont(LARGE_TEXT);
-        info = new PublicInformation(DATA_PATH);
-        info.setTempo(120);
-        info.setMidi(myBus);
-        info.setMinim(minim);
-        info.setAudioOut(out);
-
-        PImage circle = loadImage(info.getRootDirectory() + "images\\soft_shadow.png");
-        info.setCircle(circle);
-
-        RG.init(this);
-        smooth(6);
-        //RG.ignoreStyles();
+            RG.init(this);
+            smooth(6);
+            //RG.ignoreStyles();
 
 
-        cm = new ColourManager();
-        info.setColourManager(cm);
-        doubleClick = new DoubleClick();
+            cm = new ColourManager();
+            info.setColourManager(cm);
+            doubleClick = new DoubleClick();
 
-        test = loadImage("D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\images\\soft_shadow.png");
+            test = loadImage("D:\\Users\\Sam\\Documents\\GitHub\\av\\src\\data\\images\\soft_shadow.png");
 
-        //clean up the jams
-        File recordDir = new File(DATA_PATH + "recorded\\");
-        for (File f: recordDir.listFiles()) {
-            f.delete();
+            //clean up the jams
+            File recordDir = new File(DATA_PATH + "recorded\\");
+            for (File f : recordDir.listFiles()) {
+                f.delete();
+            }
+
+
+            MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
+
+            // Either you can
+            //                   Parent In Out
+            //                     |    |  |
+            //myBus = new MidiBus(this, 0, 1); // Create a new MidiBus using the device index to select the Midi input and output devices respectively.
+
+            // or you can ...
+            //                   Parent         In                   Out
+            //                     |            |                     |
+            //myBus = new MidiBus(this, "IncomingDeviceName", "OutgoingDeviceName"); // Create a new MidiBus using the device names to select the Midi input and output devices respectively.
+
+            // or for testing you could ...
+            //                 Parent  In        Out
+            //                   |     |          |
+
+
+            in = minim.getLineIn();
+            out = minim.getLineOut();
+            //System.out.println("test current directory " + System.getProperty("user.dir"));
+
+            // loop the file
+            // create an FFT object that has a time-domain buffer the same size as jingle's sample buffer
+            // note that this needs to be a power of two
+            // and that it means the size of the spectrum will be 1024.
+            // see the online tutorial for more info.
+            fft = new FFT(in.bufferSize(), in.sampleRate());
+            beatDetect = new BeatDetect(in.bufferSize(), in.sampleRate());
+            beatDetect.setSensitivity(50);
+            beatListener = new BeatListener(beatDetect, in);
+            // calculate averages based on a miminum octave width of 22 Hz
+            // split each octave into three bands
+            fft.logAverages(22, 12);
+            rectMode(CORNERS);
+
+            info.setInputFFT(fft);
+            info.setInput(in);
+
+            in.disableMonitoring();
+
+            kickRadius = width / (4);
+
+
+            synths = new Synths(info);
+            try {
+                samples = new SampleManager(info, DATA_PATH + "sounds");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            //getClass().getClassLoader().getResource()
+            //samples = new SampleManager(info, "src\\data\\sounds");
+
+            keyboardMap = new KeyTriggerManager(samples);
+
+
+            //ANIMTAIONS
+            rotateVoice = new RotateVoiceInput(this, info);
+            polygonAnimation = new PolygonAnimation(this, info);
+            rotatePlayers = new RotatePlayers(this, info);
+            try {
+                sampleLibrary = new SampleLibrary(this, rotatePlayers, info);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            activeSounds = new ArrayList<MovableBox>();
+
+            setupMovables();
+
+
+            voiceSampleList = new VoiceRecordingManager();
+
+
+            count = new CountdownAnimation(this, info);
+            beatCount = new BeatCounterAnimation(this, info);
+
+
+            menuUI = new MenuUI(this, info);
+
+            hadSetup = true;
         }
-
-
-        MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
-
-        // Either you can
-        //                   Parent In Out
-        //                     |    |  |
-        //myBus = new MidiBus(this, 0, 1); // Create a new MidiBus using the device index to select the Midi input and output devices respectively.
-
-        // or you can ...
-        //                   Parent         In                   Out
-        //                     |            |                     |
-        //myBus = new MidiBus(this, "IncomingDeviceName", "OutgoingDeviceName"); // Create a new MidiBus using the device names to select the Midi input and output devices respectively.
-
-        // or for testing you could ...
-        //                 Parent  In        Out
-        //                   |     |          |
-
-
-        in = minim.getLineIn();
-        out = minim.getLineOut();
-        //System.out.println("test current directory " + System.getProperty("user.dir"));
-
-        // loop the file
-        // create an FFT object that has a time-domain buffer the same size as jingle's sample buffer
-        // note that this needs to be a power of two
-        // and that it means the size of the spectrum will be 1024.
-        // see the online tutorial for more info.
-        fft = new FFT(in.bufferSize(), in.sampleRate());
-        beatDetect = new BeatDetect(in.bufferSize(), in.sampleRate());
-        beatDetect.setSensitivity(50);
-        beatListener = new BeatListener(beatDetect,in);
-        // calculate averages based on a miminum octave width of 22 Hz
-        // split each octave into three bands
-        fft.logAverages(22, 12);
-        rectMode(CORNERS);
-
-        in.disableMonitoring();
-
-        kickRadius = width/(4);
-
-
-        synths = new Synths(info);
-        try {
-            samples = new SampleManager(info, DATA_PATH + "sounds");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        //getClass().getClassLoader().getResource()
-        //samples = new SampleManager(info, "src\\data\\sounds");
-
-        keyboardMap = new KeyTriggerManager(samples);
-
-
-        //ANIMTAIONS
-        rotateVoice = new RotateVoiceInput(this, info);
-        polygonAnimation = new PolygonAnimation(this,info);
-        rotatePlayers = new RotatePlayers(this,info);
-        try {
-            sampleLibrary = new SampleLibrary(this, rotatePlayers, info);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        activeSounds = new ArrayList<MovableBox>();
-
-        setupMovables();
-
-
-        voiceSampleList = new VoiceRecordingManager();
-
-
-        count = new CountdownAnimation(this, info);
-        beatCount = new BeatCounterAnimation(this,info);
-
-
-
-        menuUI = new MenuUI(this, info);
-
-
-
-
 
 
 
@@ -261,176 +267,130 @@ public class MusicFun extends PApplet {
     }
 
     public void draw() {
+        if (lastmemory != Runtime.getRuntime().totalMemory()) {
+            lastmemory = Runtime.getRuntime().totalMemory();
+            System.out.println("memory used: " + Runtime.getRuntime().totalMemory() + " num milliseconds since last update: " + (millis() - memoryTime ));
+            memoryTime = millis();
 
-        background(246,245,241);
-
-        rotatePlayers.play();
-        recordButton.draw();
-
-        count.drawTimed();
-
-        beatCount.draw();
-
-
-        //handles the case of clicking reset when it was already the last one clicked
-        if (needClear) {
-            resetMovables(movables);
-            activeSounds.clear();
-            needClear = false;
         }
 
-        if (menuUI.getPresetClicked() != sampleLibrary.getCurrentLibrary()) {
-            if (menuUI.isTempo()) {
+            background(246, 245, 241);
 
-            } else {
-                resetMovables(sampleLibrary.getCurrentLibraryList());
-                sampleLibrary.setCurrentLibrary(menuUI.getPresetClicked());
-                for (MovableBox m : sampleLibrary.getCurrentLibraryList()) {
-                    updateActiveSounds(m);
-                }
+            rotatePlayers.play();
+            recordButton.draw();
+
+            count.drawTimed();
+
+            beatCount.draw();
+
+
+            //handles the case of clicking reset when it was already the last one clicked
+            if (needClear) {
+                resetMovables(movables);
+                activeSounds.clear();
+                needClear = false;
             }
 
-        }
-        drawMovables(movables);
+            if (menuUI.getPresetClicked() != sampleLibrary.getCurrentLibrary()) {
+                if (menuUI.isTempo()) {
 
-        drawMovables(sampleLibrary.getCurrentLibraryList());
-
-
-
-        if (polygonAnimation.isKeyTriggered()) {
-            polygonAnimation.drawTimed();
-        }
-
-        //System.out.println(activeSounds.size() + " active sounds");
-        for (MovableBox m: activeSounds) {
-            int playing = info.getDurationMS(m.getSound().getLength()) * 4;
-            int soundDelay =  m.getSound().getDelay()*4;
-            int currentTime = (millis() - AVERAGE_LAG_COMPENSATION) % playing;
-            int result = ((currentTime) % (playing)) - soundDelay;
-            if ((result < LAG_COMPENSATION || result > playing - LAG_COMPENSATION) && result >= 0) {
-                m.playsound();
-                //System.out.println("time is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
-            } else {
-                //System.out.println("MISSED is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
-            }
-            m.getExtraAnimation().setFill(m.getFill());
-            m.getExtraAnimation().setHackyPosition(m.getxLocation(), m.getyLocation());
-
-            m.getExtraAnimation().draw();
-        }
-
-
-        menuUI.draw();
-
-
-
-
-
-
-    /*
-
-        //logarithmic visualiser
-        //fill(255);
-        // perform a forward FFT on the samples in jingle's mix buffer
-        // note that if jingle were a MONO file, this would be the same as using jingle.left or jingle.right
-        fft.forward(in.mix);
-        // avgWidth() returns the number of frequency bands each average represents
-        // we'll use it as the width of our rectangles
-        int w = width/fft.avgSize();
-        int colourWidth = 255 / fft.avgSize();
-        float maxHeight =0;
-        noStroke();
-        for(int i = 0; i < fft.avgSize(); i++)
-
-        {
-
-            float freqStrength = fft.getAvg(i);
-            if (freqStrength > 1) {
-                freqStrength = (float) (freqStrength + (Math.pow(i,1.05)/2));
-
-
-                if (freqStrength>maxHeight) {
-                    maxHeight = freqStrength;
+                } else {
+                    resetMovables(sampleLibrary.getCurrentLibraryList());
+                    sampleLibrary.setCurrentLibrary(menuUI.getPresetClicked());
+                    for (MovableBox m : sampleLibrary.getCurrentLibraryList()) {
+                        updateActiveSounds(m);
+                    }
                 }
-                // draw a rectangle for each average, multiply the value by 5 so we can see it better
-                pushMatrix();
-                translate(width / 2 + 600, height / 2 + 300,1);
-                float rotateDegree = map(i, 0, fft.avgSize(), 0, 380);
-                rotate((float) Math.toRadians(rotateDegree));
+
+            }
+            drawMovables(movables);
+
+            drawMovables(sampleLibrary.getCurrentLibraryList());
 
 
-                //rotate(i);
-                //rect(i*5, 0, i*w + w, height - fft.getAvg(i)*5);
-                int red = Math.max(100, (i * colourWidth));
-                int green = Math.max(100, (i * colourWidth));
-                int blue = Math.max(100, (i * colourWidth));
+            if (polygonAnimation.isKeyTriggered()) {
+                polygonAnimation.drawTimed();
+            }
 
-                Color c = new Color(red, green , blue);
+            //System.out.println(activeSounds.size() + " active sounds");
 
 
+            for (MovableBox m : activeSounds) {
+                int playing = info.getDurationMS(m.getSound().getLength()) * 4;
+                int soundDelay = m.getSound().getDelay() * 4;
+                int currentTime = (millis() - AVERAGE_LAG_COMPENSATION) % playing;
+                int result = ((currentTime) % (playing)) - soundDelay;
+                if ((result < LAG_COMPENSATION || result > playing - LAG_COMPENSATION) && result >= 0) {
+                    m.playsound();
+                    //System.out.println("time is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
+                } else {
+                    //System.out.println("MISSED is " + currentTime + " playing is " + playing + " sound has delay of " + soundDelay);
+                }
+                m.getExtraAnimation().setFill(m.getFill());
+                m.getExtraAnimation().setHackyPosition(m.getxLocation(), m.getyLocation());
+
+                m.getExtraAnimation().draw();
+            }
+
+
+            menuUI.draw();
+
+
+        if (recordButton.isCountdownFinished()) {
+            recorder.beginRecord();
+        }
+
+
+
+
+
+
+
+            int channel = 0;
+            int pitch = 64;
+            int velocity = 127;
+
+            //myBus.sendNoteOn(channel, pitch, velocity); // Send a Midi noteOn
+            //delay(200);
+            //myBus.sendNoteOff(channel, pitch, velocity); // Send a Midi nodeOff
+
+            //myBus.sendControlzlerChange();
+
+            int number = 0;
+            int value = 90;
+
+
+            if (keyTemp) {
+                fill(Color.RED.getRGB());
+                rect(0, 0, 25, 25);
+            }
+
+            int i = 0;
+            for (String category : cm.getSeedMap().keySet()) {
+                Color c = cm.getRandomColor(category);
                 fill(c.getRGB());
 
-                rect(0, 0, w, freqStrength * 2);
+                text(category, 400, 20 + (i * 20));
+                i++;
+            }
+
+            if (DEBUG) {
+                float time = millis();
+                textSize(12);
+
+                fill(Color.black.getRGB());
+                text("frame rate: " + Math.round(frameRate) + " time is " + time + " / tempo is " + info.getTempo(), getWidth() / 2 + 600, 20);
+
+                pushMatrix();
+
+                translate(getWidth() - 200, 20);
+                if (recorder != null && recorder.isRecording()) {
+                    text("recording", 0, 0);
+                } else {
+                    text("not recording", 0, 0);
+                }
                 popMatrix();
             }
-        }
-
-        noFill();
-        int strokeColour = (int)map(maxHeight,0,50,0,100);
-        stroke(strokeColour);
-        strokeWeight(3);
-        pushMatrix();
-        translate(width / 2 + 600, height / 2 + 300);
-        ellipse(0, 0, maxHeight * 8, maxHeight * 8);
-        ellipse(0,0,maxHeight*8,maxHeight*8);
-        popMatrix();
-
-*/
-        int channel = 0;
-        int pitch = 64;
-        int velocity = 127;
-
-        //myBus.sendNoteOn(channel, pitch, velocity); // Send a Midi noteOn
-        //delay(200);
-        //myBus.sendNoteOff(channel, pitch, velocity); // Send a Midi nodeOff
-
-        //myBus.sendControlzlerChange();
-
-        int number = 0;
-        int value = 90;
-
-
-        if (keyTemp) {
-            fill(Color.RED.getRGB());
-            rect(0, 0, 25, 25);
-        }
-
-        int i = 0;
-        for (String category: cm.getSeedMap().keySet()) {
-            Color c = cm.getRandomColor(category);
-            fill(c.getRGB());
-
-            text(category, 400, 20 + (i*20));
-            i++;
-        }
-
-        if (DEBUG) {
-            float time = millis();
-            textSize(12);
-
-            fill(Color.black.getRGB());
-            text("frame rate: " + Math.round(frameRate) + " time is " + time + " / tempo is " + info.getTempo(), getWidth()/2 + 600, 20);
-
-            pushMatrix();
-
-            translate(getWidth()-200, 20);
-            if(recorder != null && recorder.isRecording()) {
-                text("recording", 0, 0);
-            } else {
-                text("not recording", 0, 0);
-            }
-            popMatrix();
-        }
 
 
 
@@ -666,44 +626,7 @@ public class MusicFun extends PApplet {
                     in.enableMonitoring();
                 }
             } else if (key == 'r' || key == 'R') {
-                int numRecordings = samples.getNumSamplesKey("recorded");
-                String voiceRecordingFilepath = DATA_PATH + "recorded\\test"+(numRecordings+1)+".wav";
 
-                //first time we create one
-                if (recorder == null) {
-                    recorder = minim.createRecorder(in,voiceRecordingFilepath);
-                }
-                if (recorder.isRecording()) {
-                    recorder.endRecord();
-                    recorder.save();
-                    recorder=null;
-
-
-                    //add to sample manager?
-                    System.out.println("samples before: " + samples.getNumSamples());
-                    try {
-                        samples.insertIndividualItem(voiceRecordingFilepath);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                    System.out.println("samples after: " + samples.getNumSamples());
-
-                    //update movables
-
-                    MovableBox temp = new MovableBox(this,info,recordButton.getxLocation() - MovableBox.BIG_BUTTON - 20,recordButton.getyLocation() + 200,MovableBox.BIG_BUTTON,MovableBox.BIG_BUTTON);
-                    Sample s = samples.getNewestSample();
-                    System.out.println("recorded file category " + s.getCategory());
-                    s.setCategory("record");
-
-                    temp.setSound(s);
-
-
-                    movables.add(temp);
-                } else {
-                    recorder.beginRecord();
-
-                }
             } else {
                 Sample thisSample = keyboardMap.getSampleOfKey(Character.toLowerCase(key));
                 if (thisSample != null) {
@@ -956,8 +879,6 @@ public class MusicFun extends PApplet {
 
             } else {
                 recordButton.startRecording();
-                recorder.beginRecord();
-
             }
         }
     }
