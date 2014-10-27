@@ -42,6 +42,8 @@ public class MovableBox extends ProcessingAnimation {
     private boolean lockXMovement;
     private boolean recording;
 
+    private boolean circleShape;
+
 
 
     MovableBox child;
@@ -115,7 +117,7 @@ public class MovableBox extends ProcessingAnimation {
         child = null;
         parent = null;
         original = true;
-
+        circleShape = true;
         toDelete = false;
         graphic = null;
 
@@ -192,8 +194,20 @@ public class MovableBox extends ProcessingAnimation {
 
 
             //graphic.draw();
+            float gWidth = p.map(graphic2.getWidth(), 0, graphic2.getWidth(), 0, getWidth() * 0.60f);
 
-            p.shape(graphic2, 0,0,getWidth()*0.65f, getWidth()*0.65f);
+            float gHeight = p.map(graphic2.getHeight(), 0, graphic2.getHeight(), 0, getHeight() * 0.60f);
+
+            float ratio;
+            if (graphic2.getWidth() > graphic2.getHeight()) {
+                ratio = (getWidth() * 0.70f) / graphic2.getWidth();
+
+            } else {
+                ratio = (getHeight() * 0.70f) / graphic2.getHeight();
+
+            }
+
+            p.shape(graphic2, 0,0, graphic2.getWidth() * ratio, graphic2.getHeight() * ratio);
 
 
 
@@ -275,6 +289,16 @@ public class MovableBox extends ProcessingAnimation {
         return sound;
 
     }
+
+
+    public boolean isCircleShape() {
+        return circleShape;
+    }
+
+    public void setCircleShape(boolean circleShape) {
+        this.circleShape = circleShape;
+    }
+
     public float getCenterX() {
         return ((getxLocation() + getWidth()/2.0f));
     }
@@ -562,7 +586,6 @@ public class MovableBox extends ProcessingAnimation {
         } else {
             System.out.println("node has no children");
 
-            System.out.println("parent hash: " + this.getParent().hashCode() + " this hash: " + hashCode());
 
             //should be impossible;
             if (getParent() != null) {
@@ -577,7 +600,7 @@ public class MovableBox extends ProcessingAnimation {
                 }
 
             } else {
-                throw new NullPointerException("somehow trying to delete the head node (should be impossible)");
+
             }
         }
 

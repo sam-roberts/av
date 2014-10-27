@@ -24,7 +24,7 @@ public class RecordButton extends MovableBox {
     public RecordButton(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
         super(p, info, xLocation, yLocation, width, height);
 
-        microphone = p.loadShape(info.getRootDirectory() + "images\\mic.svg");
+        microphone = p.loadShape(info.getRootDirectory() + "images\\record.svg");
         microphone.setFill(Color.WHITE.getRGB());
         microphone.setStroke(Color.WHITE.getRGB());
 
@@ -44,10 +44,10 @@ public class RecordButton extends MovableBox {
         p.translate(xLocation, yLocation);
 
 
-        p.rect(0, 0, this.width, this.height);
+        p.rect(0, 0, this.initialWidth, this.initialHeight);
 
 
-        p.shape(microphone, 15,(getHeight() / 2.0f) - (micWidth / 4.0f),micWidth, micHeight);
+        p.shape(microphone, 50,(getHeight() / 2.0f),micWidth, micHeight);
         p.fill(255);
         p.textSize(30);
         p.text(text, micWidth+120,getHeight()/2);

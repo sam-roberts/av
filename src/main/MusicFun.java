@@ -121,6 +121,9 @@ public class MusicFun extends PApplet {
         info.setMinim(minim);
         info.setAudioOut(out);
 
+        PImage circle = loadImage(info.getRootDirectory() + "images\\soft_shadow.png");
+        info.setCircle(circle);
+
         RG.init(this);
         smooth(6);
         //RG.ignoreStyles();
@@ -242,8 +245,9 @@ public class MusicFun extends PApplet {
             i++;
 
         }
-        recordButton = new RecordButton(this,info,getWidth()-400,getHeight()/6,MovableBox.RECORDED_WIDTH,MovableBox.RECORDED_HEIGHT);
+        recordButton = new RecordButton(this,info,getWidth()- MovableBox.RECORDED_WIDTH - 20,20,MovableBox.RECORDED_WIDTH,MovableBox.RECORDED_HEIGHT);
         recordButton.setMovable(false);
+        recordButton.setCircleShape(false);
 
         movables.add(recordButton);
 
@@ -265,9 +269,8 @@ public class MusicFun extends PApplet {
 
         count.drawTimed();
 
-        if (DEBUG) {
-            beatCount.draw();
-        }
+        beatCount.draw();
+
 
         //handles the case of clicking reset when it was already the last one clicked
         if (needClear) {
@@ -277,15 +280,15 @@ public class MusicFun extends PApplet {
         }
 
         if (menuUI.getPresetClicked() != sampleLibrary.getCurrentLibrary()) {
-                if (menuUI.isTempo()) {
+            if (menuUI.isTempo()) {
 
-                } else {
-                    resetMovables(sampleLibrary.getCurrentLibraryList());
-                    sampleLibrary.setCurrentLibrary(menuUI.getPresetClicked());
-                    for (MovableBox m : sampleLibrary.getCurrentLibraryList()) {
-                        updateActiveSounds(m);
-                    }
+            } else {
+                resetMovables(sampleLibrary.getCurrentLibraryList());
+                sampleLibrary.setCurrentLibrary(menuUI.getPresetClicked());
+                for (MovableBox m : sampleLibrary.getCurrentLibraryList()) {
+                    updateActiveSounds(m);
                 }
+            }
 
         }
         drawMovables(movables);
@@ -456,6 +459,13 @@ public class MusicFun extends PApplet {
             updateActiveSounds(m);
             if (activeSounds.contains(m)) {
                 activeSounds.remove(m);
+            }
+
+            if (m.getSound() != null) {
+                m.getSound().getMyPlayer().pause();
+                m.getSound().getMyPlayer().rewind();
+
+
             }
 
 
@@ -676,12 +686,18 @@ public class MusicFun extends PApplet {
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
+
                     System.out.println("samples after: " + samples.getNumSamples());
 
                     //update movables
-                    MovableBox temp = new MovableBox(this,info,800,600,MovableBox.BIG_BUTTON,MovableBox.BIG_BUTTON);
 
-                    temp.setSound(samples.getNewestSample());
+                    MovableBox temp = new MovableBox(this,info,recordButton.getxLocation() - MovableBox.BIG_BUTTON - 20,recordButton.getyLocation() + 200,MovableBox.BIG_BUTTON,MovableBox.BIG_BUTTON);
+                    Sample s = samples.getNewestSample();
+                    System.out.println("recorded file category " + s.getCategory());
+                    s.setCategory("record");
+
+                    temp.setSound(s);
+
 
                     movables.add(temp);
                 } else {
@@ -775,7 +791,7 @@ public class MusicFun extends PApplet {
         }
         MovableBox tempDragTarget = dragTarget;
         if (tempDragTarget != null) {
-            if (doubleClick.isDoubleClick(tempDragTarget, this.millis()) && tempDragTarget.isLockXMovement() == false) {
+            if (doubleClick.isDoubleClick(tempDragTarget, this.millis()) && tempDragTarget.isLockXMovement() == false && tempDragTarget != recordButton) {
                 doubleClick.reset();
                 System.out.println("double click");
 
@@ -827,7 +843,9 @@ public class MusicFun extends PApplet {
             } else {
                 doubleClick.setClick(tempDragTarget, this.millis());
 
+                if (activeSounds.contains(tempDragTarget) == false) {
                     tempDragTarget.playsound();
+                }
             }
         } else {
             pressedUI();
@@ -839,34 +857,46 @@ public class MusicFun extends PApplet {
     private void pressedUI() {
         Point mouseLocation = getMousePosition();
         if (mouseLocation != null) {
-        if (menuUI.getWholeSize().contains(mouseLocation)) {
-            menuUI.clickedAt(mouseLocation);
+            if (menuUI.getWholeSize().contains(mouseLocation)) {
+                menuUI.clickedAt(mouseLocation);
 
-            if (menuUI.getPresetClicked() == 0) {
-                needClear = true;
-            }
-            if (menuUI.isTempo()) {
-                if (menuUI.getTempoButton() == menuUI.TEMPO_DOWN) {
-                    tempoDown();
-                } else if (menuUI.getTempoButton() == menuUI.TEMPO_UP) {
-                    tempoUp();
+                if (menuUI.getPresetClicked() == 0) {
+                    needClear = true;
                 }
-            }
+                if (menuUI.isTempo()) {
+                    if (menuUI.getTempoButton() == menuUI.TEMPO_DOWN) {
+                        tempoDown();
+                    } else if (menuUI.getTempoButton() == menuUI.TEMPO_UP) {
+                        tempoUp();
+                    }
+                }
 
-        }
+            }
 
 
         }
     }
 
     private void findDragTarget(ArrayList<MovableBox> movables) {
+        Point p = getMousePosition();
         for (MovableBox m: movables) {
-            if (getMousePosition() != null) {
-                if (getMousePosition().distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()) {
-                    m.pressed();
-                    dragTarget = m;
-                    System.out.println("found target");
-                    break;
+
+            if (p != null) {
+
+                if (m.isCircleShape()) {
+                    if (p.distance(new Point2D.Float(m.getxLocation(), m.getyLocation())) < m.getWidth()/2.0f) {
+                        m.pressed();
+                        dragTarget = m;
+                        System.out.println("found target");
+                        break;
+                    }
+                } else {
+                    if (isPointInsideRectangle(m,p)) {
+                        m.pressed();
+                        dragTarget = m;
+                        System.out.println("found target");
+                        break;
+                    }
                 }
             }
         }
@@ -915,8 +945,12 @@ public class MusicFun extends PApplet {
                 //update movables
                 MovableBox temp = new MovableBox(this, info, recordButton.getxLocation() - MovableBox.RECORDED_WIDTH, recordButton.getyLocation() + MovableBox.RECORDED_HEIGHT, MovableBox.BIG_BUTTON, MovableBox.BIG_BUTTON);
                 temp.setRecording(true);
-                temp.setSound(samples.getNewestSample());
+                Sample s = samples.getNewestSample();
+                s.setCategory("record");
+
+                temp.setSound(s);
                 movables.add(temp);
+
                 updateActiveSounds(temp);
                 recordButton.stopRecording();
 
@@ -1060,26 +1094,30 @@ public class MusicFun extends PApplet {
         for (UIButton m: uiButtons) {
             Point mousePosition = getMousePosition();
             if (mousePosition != null) {
-                Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
-                Rectangle2D.Float r = new Rectangle2D.Float(m.getxLocation(), m.getyLocation(), m.getWidth(), m.getWidth());
-
-                if (p != null && r.contains(mousePosition)) {
-                    m.setHover(true);
-                }else {
-                    m.setHover(false);
-                }
+                m.setHover(isPointInsideRectangle(m, mousePosition));
             }
         }
     }
+
+    private boolean isPointInsideRectangle(MovableBox m, Point mousePosition) {
+        Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
+        Rectangle2D.Float r = new Rectangle2D.Float(m.getxLocation(), m.getyLocation(), m.getWidth(), m.getHeight());
+        return (p != null && r.contains(mousePosition));
+    }
+
     private void checkHover(ArrayList<MovableBox> movables) {
         for (MovableBox m: movables) {
             Point mousePosition = getMousePosition();
             if (mousePosition != null) {
                 Point2D.Float p = new Point2D.Float(m.getxLocation(), m.getyLocation());
-                if (p != null && mousePosition.distance(p) < m.getWidth()/2) {
-                    m.setHover(true);
-                }else {
-                    m.setHover(false);
+                if (m.isCircleShape()) {
+                    if (p != null && mousePosition.distance(p) < m.getWidth() / 2) {
+                        m.setHover(true);
+                    } else {
+                        m.setHover(false);
+                    }
+                } else {
+                    m.setHover(isPointInsideRectangle(m, mousePosition));
                 }
             }
         }

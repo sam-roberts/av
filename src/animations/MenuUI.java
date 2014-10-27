@@ -76,7 +76,7 @@ public class MenuUI extends ProcessingAnimation {
         p.textSize(24);
         float left = p.getWidth()/2.0f - CENTER_OFFSET;
         p.text("Presets", left + (((NUM_PRESETS/2) + 1) * BUTTON_WIDTH), p.getHeight() - BUTTON_WIDTH - 30);
-        p.text("Tempo: " + info.getTempo() + "bpm", left + ((NUM_PRESETS + NUM_OTHER/2) * BUTTON_WIDTH), p.getHeight() - BUTTON_WIDTH - 30);
+        p.text("Change Tempo", left + ((NUM_PRESETS + NUM_OTHER/2) * BUTTON_WIDTH), p.getHeight() - BUTTON_WIDTH - 30);
 
         for (int i = 0; i < NUM_OTHER + NUM_PRESETS - 1; i++) {
             float xLocation = left + (i+1)*BUTTON_WIDTH;

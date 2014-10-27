@@ -32,8 +32,8 @@ public class BeatCounterAnimation extends ProcessingAnimation {
             timer = p.millis();
             numQuarters=1;
         }
-        p.fill(0);
-        p.text("new bar every " + wholeBarTime + " Number of whole measures: " + numMeasures + " | " + numQuarters , 200,20);
+        p.fill(0,40);
+        p.text(numMeasures + " | " + numQuarters + " Tempo: " + info.getTempo(), 150,20);
     }
 
     @Override

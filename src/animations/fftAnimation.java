@@ -24,7 +24,7 @@ public class fftAnimation extends ProcessingAnimation {
         fft.logAverages(22,3);
         fft.linAverages(8);
 
-        circle = p.loadImage(info.getRootDirectory() + "images\\soft_shadow.png");
+        circle = info.getCircle();
         p.imageMode(p.CENTER);
 
     }

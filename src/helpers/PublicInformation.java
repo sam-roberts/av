@@ -4,6 +4,7 @@ import animations.ColourManager;
 import animations.LinkedAnimations;
 import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
+import processing.core.PImage;
 import themidibus.MidiBus;
 
 /**
@@ -21,6 +22,7 @@ public class PublicInformation {
 
     private final String rootDirectory;
     private LinkedAnimations links;
+    private PImage circle;
 
     public PublicInformation(String rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -88,5 +90,13 @@ public class PublicInformation {
 
     public void setLinks(LinkedAnimations links) {
         this.links = links;
+    }
+
+    public PImage getCircle() {
+        return circle;
+    }
+
+    public void setCircle(PImage circle) {
+        this.circle = circle;
     }
 }
