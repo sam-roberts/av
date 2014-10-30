@@ -33,6 +33,7 @@ public class BeatCounterAnimation extends ProcessingAnimation {
             numQuarters=1;
         }
         p.fill(0,40);
+        p.textSize(24 * info.getRatio());
         p.text(numMeasures + " | " + numQuarters + " Tempo: " + info.getTempo(), 150,20);
     }
 

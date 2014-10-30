@@ -48,8 +48,7 @@ public class ColourManager {
         float offset = r.nextFloat();
         int seed = r.nextInt();
         float hue = (offset + (0.618033988749895f * seed) % 1);
-        Color c = Color.getHSBColor(hue, 0.9f, 0.95f);
-        return c;
+        return Color.getHSBColor(hue, 0.9f, 0.95f);
 
     }
 

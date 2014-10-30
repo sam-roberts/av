@@ -1,10 +1,8 @@
 package animations;
 
-import ddf.minim.AudioRecorder;
 import ddf.minim.analysis.FFT;
 import helpers.PublicInformation;
 import processing.core.PApplet;
-import processing.core.PImage;
 import processing.core.PShape;
 
 import java.awt.*;
@@ -32,15 +30,15 @@ public class RecordButton extends MovableBox {
     int count;
     boolean countdownFinished = false;
     int startTime;
-    public RecordButton(PApplet p, PublicInformation info, int xLocation, int yLocation, int width, int height) {
+    public RecordButton(PApplet p, PublicInformation info, float xLocation, int yLocation, float width, float height) {
         super(p, info, xLocation, yLocation, width, height);
 
-        microphone = p.loadShape(info.getRootDirectory() + "images\\record.svg");
+        microphone = p.loadShape(info.getRootDirectory() + "images/record.svg");
         microphone.setFill(Color.WHITE.getRGB());
         microphone.setStroke(Color.WHITE.getRGB());
 
-        micWidth = microphone.getWidth() * scaleFactor;
-        micHeight = microphone.getHeight() * scaleFactor;
+        micWidth = microphone.getWidth() * scaleFactor * info.getRatio();
+        micHeight = microphone.getHeight() * scaleFactor * info.getRatio();
 
         initialFill = info.getColourManager().getRandomColor("record");
         setFill(initialFill);
@@ -59,7 +57,7 @@ public class RecordButton extends MovableBox {
             p.translate(p.getWidth() / 2.0f, p.getHeight() / 2.0f);
 
             p.fill(0);
-            p.textSize(72);
+            p.textSize((int)(72 * info.getRatio()));
             if (count != 0) {
                 System.out.println("write the countdown");
 
@@ -69,10 +67,12 @@ public class RecordButton extends MovableBox {
                     count--;
                     startTime = p.millis();
                 }
+                p.textSize(22 * info.getRatio());
                 text = "Recording in..." + count;
             } else {
                 p.fill(Color.red.getRGB());
                 p.text("Recording", 0, 0);
+                p.textSize(30 * info.getRatio());
 
                 text = "Recording";
                 countdownFinished=true;
@@ -94,10 +94,9 @@ public class RecordButton extends MovableBox {
         p.rect(0, 0, this.initialWidth, this.initialHeight);
 
 
-        p.shape(microphone, 50,(getHeight() / 2.0f),micWidth, micHeight);
+        p.shape(microphone, 50 * info.getRatio(),(getHeight() / 2.0f),micWidth, micHeight);
         p.fill(255);
-        p.textSize(30);
-        p.text(text, micWidth+120,getHeight()/2);
+        p.text(text, micWidth+(120 * info.getRatio()),getHeight()/2);
 
         p.popMatrix();
 
@@ -143,7 +142,6 @@ public class RecordButton extends MovableBox {
         startTime = p.millis();
 
         setFill(Color.red);
-        return;
     }
 
     public void stopRecording() {
@@ -152,6 +150,5 @@ public class RecordButton extends MovableBox {
         setFill(initialFill);
         count = 3;
         countdownFinished = false;
-        return;
     }
 }

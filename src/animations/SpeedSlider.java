@@ -4,8 +4,6 @@ import helpers.Duration;
 import helpers.PublicInformation;
 import processing.core.PApplet;
 
-import java.awt.*;
-
 /**
  * Created by Sam on 6/10/2014.
  */
@@ -30,6 +28,14 @@ public class SpeedSlider extends ProcessingAnimation {
         this.xLocation = xLocation;
         this.yLocation = yLocation;
 
+        hasClicked = false;
+        setPositionGivenSpeed(position);
+
+        slider = new SliderBox(p, info, (float)(xLocation + (position * segment * info.getRatio())), yLocation, MovableBox.NODE_WIDTH * info.getRatio(), MovableBox.NODE_WIDTH * info.getRatio());
+
+    }
+
+    public void setPositionGivenSpeed(double position) {
         if (position == Duration.SIXTEENTH) {
             this.position = 4;
         } else if (position == Duration.EIGHTH) {
@@ -41,23 +47,21 @@ public class SpeedSlider extends ProcessingAnimation {
         } else if (position == Duration.WHOLE)  {
             this.position = 0;
         }
-        hasClicked = false;
-        slider = new SliderBox(p, info, (float)(xLocation + (position * segment)), yLocation, MovableBox.NODE_WIDTH, MovableBox.NODE_WIDTH);
-
     }
+
     @Override
     protected void drawAnimation() {
         p.stroke(230);
         p.pushMatrix();
         p.translate(-getOffset(),0,-1);
-        p.line(this.xLocation, this.yLocation, this.xLocation + (totalWidth), this.yLocation);
+        p.line(this.xLocation, this.yLocation, this.xLocation + (totalWidth * info.getRatio()), this.yLocation);
         p.stroke(200);
         p.fill(120);
-        p.textSize(16);
+        p.textSize(16 * info.getRatio());
         for (int i = 0 ; i < numSettings; i++) {
-            float localX = this.xLocation + (i * segment);
-            p.line(localX, yLocation - 15, localX, yLocation + 15);
-            p.text(getText(i), localX-15, yLocation + 30);
+            float localX = this.xLocation + (i * segment * info.getRatio());
+            p.line(localX, yLocation - 15 * info.getRatio(), localX, yLocation + 15 * info.getRatio());
+            p.text(getText(i), localX-15 * info.getRatio(), yLocation + 30 * info.getRatio());
         }
 
         //draw the correct position
@@ -120,7 +124,12 @@ public class SpeedSlider extends ProcessingAnimation {
 
     public void setxLocation(float xLocation) {
         this.xLocation = xLocation;
-        slider.setxLocation(xLocation - getOffset() + (position*segment));
+        slider.setxLocation(xLocation - getOffset() + (position*segment * info.getRatio()));
+
+    }
+
+    public void fixPosition() {
+        slider.setxLocation(xLocation - getOffset() + (position*segment * info.getRatio()));
 
     }
 
@@ -128,7 +137,7 @@ public class SpeedSlider extends ProcessingAnimation {
         //input
         float startPoint = getxLocation() - getOffset();
         float distance = x - startPoint;
-        float endPoint = startPoint + (totalWidth);
+        float endPoint = startPoint + (totalWidth * info.getRatio());
 
         float returnValue = 0;
 
@@ -136,12 +145,12 @@ public class SpeedSlider extends ProcessingAnimation {
         if (distance < 0) {
             newPosition = 0;
             returnValue = startPoint;
-        } else if (distance > totalWidth) {
+        } else if (distance > totalWidth * info.getRatio()) {
             newPosition = 4;
             returnValue = endPoint;
         } else {
-            float n = roundToNearest(distance, segment);
-            newPosition = (int) (n/segment);
+            float n = roundToNearest(distance, segment  * info.getRatio());
+            newPosition = (int) (n/segment * info.getRatio());
             if (newPosition > numSettings - 1) {
                 newPosition = 0;
             }
@@ -161,7 +170,7 @@ public class SpeedSlider extends ProcessingAnimation {
 
     }
 
-    private float roundToNearest(float numToRound, int multiple) {
+    private float roundToNearest(float numToRound, float multiple) {
 
             return multiple * (Math.round(numToRound/multiple));
     }

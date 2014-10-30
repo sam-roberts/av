@@ -2,7 +2,6 @@ package helpers;
 
 import animations.ColourManager;
 import animations.LinkedAnimations;
-import animations.RotateVoiceInput;
 import ddf.minim.AudioInput;
 import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
@@ -29,6 +28,7 @@ public class PublicInformation {
     private AudioInput audioInput;
     private FFT inputFFT;
     private AudioInput input;
+    private float ratio;
 
     public PublicInformation(String rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -124,5 +124,13 @@ public class PublicInformation {
 
     public AudioInput getInput() {
         return input;
+    }
+
+    public void setRatio(float ratio) {
+        this.ratio = ratio;
+    }
+
+    public float getRatio() {
+        return ratio;
     }
 }

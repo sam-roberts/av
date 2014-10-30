@@ -8,16 +8,16 @@ import processing.core.PApplet;
  */
 public class FadeAnimation extends ProcessingAnimation {
 
-    float xLocation;
-    float yLocation;
+    private float xLocation;
+    private float yLocation;
 
-    int animationSize;
-    int animationOpacity;
-    boolean startAnimation = false;
-    int normalSize;
+    private float animationSize;
+    private int animationOpacity;
+    private boolean startAnimation = false;
+    private float normalSize;
     double speed = 0;
 
-    public FadeAnimation(PApplet p, PublicInformation info, float xLocation, float yLocation, int size) {
+    public FadeAnimation(PApplet p, PublicInformation info, float xLocation, float yLocation, float size) {
         super(p, info);
         this.xLocation = xLocation;
         this.yLocation = yLocation;

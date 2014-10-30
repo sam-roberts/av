@@ -12,7 +12,6 @@ public class Quantizer {
         if (ratio > 0.95) {
             ratio = 0;
         }
-        int result = (int)(wholeMeasureMS * ratio / frequency);
-        return result;
+        return (int)(wholeMeasureMS * ratio / frequency);
     }
 }

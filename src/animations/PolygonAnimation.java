@@ -4,7 +4,6 @@ import helpers.PublicInformation;
 import processing.core.PApplet;
 import processing.core.PShape;
 
-import java.awt.*;
 import java.util.Random;
 
 /**
@@ -39,7 +38,6 @@ public class PolygonAnimation extends ProcessingAnimation {
         }
         p.fill(this.fill.getRGB());
         p.noStroke();
-        p.smooth();
 
 
 

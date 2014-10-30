@@ -1,9 +1,6 @@
 package helpers;
 
 import animations.ProcessingAnimation;
-import com.sun.javaws.exceptions.MissingFieldException;
-import ddf.minim.AudioEffect;
-import ddf.minim.AudioOutput;
 import ddf.minim.AudioPlayer;
 
 import java.io.File;
@@ -40,7 +37,7 @@ public class Sample implements Runnable{
             this.info = info;
             this.delay = 0;
             myPlayer = info.getMinim().loadFile(filepath);
-            String regex = "(\\w*)\\.wav$";
+            String regex = "(/w*)/.wav$";
             Pattern pattern = Pattern.compile(regex);
             Matcher m = pattern.matcher(getFilepath());
 

@@ -1,7 +1,5 @@
 package animations;
 
-import com.sun.javaws.exceptions.MissingFieldException;
-import geomerative.RG;
 import geomerative.RShape;
 import helpers.PublicInformation;
 import helpers.Sample;
@@ -28,7 +26,7 @@ public class MovableBox extends ProcessingAnimation {
 
     float xLocation;
     float yLocation;
-    int width;
+    float width;
 
     boolean playsound = true;
 
@@ -52,25 +50,25 @@ public class MovableBox extends ProcessingAnimation {
     private boolean original;
     private boolean toDelete;
 
-    public int getWidth() {
+    public float getWidth() {
         return width;
     }
 
-    public void setWidth(int width) {
+    public void setWidth(float width) {
         this.width = width;
     }
 
-    public int getHeight() {
+    public float getHeight() {
         return height;
     }
 
-    public void setHeight(int height) {
+    public void setHeight(float height) {
         this.height = height;
     }
 
-    int height;
-    int initialWidth;
-    int initialHeight;
+    float height;
+    float initialWidth;
+    float initialHeight;
     Color initialFill;
     boolean movable;
 
@@ -88,14 +86,12 @@ public class MovableBox extends ProcessingAnimation {
     private float initialSpawnX;
     private float initialSpawnY;
 
-    final private float GRAVITY_THRESHOLD = 0.01f;
-
     RShape graphic;
     PShape graphic2;
 
 
     Rotater hitBy = null;
-    public MovableBox(PApplet p, PublicInformation info, float xLocation, float yLocation, int width, int height) {
+    public MovableBox(PApplet p, PublicInformation info, float xLocation, float yLocation, float width, float height) {
         super(p, info);
         this.xLocation = xLocation;
         this.yLocation = yLocation;
@@ -187,7 +183,7 @@ public class MovableBox extends ProcessingAnimation {
         p.stroke(getFill().darker().getRGB());
         p.strokeWeight(2);
         p.pushMatrix();
-        p.translate(getxLocation(), getyLocation(), 1);
+        p.translate(getxLocation(), getyLocation(), 2);
 
         p.ellipse(0, 0, this.width, this.height);
         p.shapeMode(p.CENTER);
@@ -240,16 +236,17 @@ public class MovableBox extends ProcessingAnimation {
     }
 
     private void applyGravity() {
-        if (xAcceleration < GRAVITY_THRESHOLD  && xAcceleration > -GRAVITY_THRESHOLD) {
+        float GRAVITY_THRESHOLD = 0.01f;
+        if (xAcceleration < GRAVITY_THRESHOLD && xAcceleration > -GRAVITY_THRESHOLD) {
             xAcceleration = 0.0f;
         } else {
-            this.xAcceleration = (float) (this.getxAcceleration() / 1.5f);
+            this.xAcceleration = (this.getxAcceleration() / 1.5f);
 
         }
-        if (yAcceleration < GRAVITY_THRESHOLD  && yAcceleration > -GRAVITY_THRESHOLD) {
+        if (yAcceleration < GRAVITY_THRESHOLD && yAcceleration > -GRAVITY_THRESHOLD) {
             yAcceleration = 0.0f;
         } else {
-            this.yAcceleration = (float) (this.getyAcceleration() / 1.5f);
+            this.yAcceleration = (this.getyAcceleration() / 1.5f);
         }
 
     }
@@ -315,7 +312,7 @@ public class MovableBox extends ProcessingAnimation {
 
 
 
-            File f = new File(info.getRootDirectory() + "images\\" + sound.getCategory()+".svg");
+            File f = new File(info.getRootDirectory() + "images/" + sound.getCategory()+".svg");
 
             if (f.isFile()) {
                 //graphic = RG.loadShape(f.getAbsolutePath());
@@ -342,7 +339,7 @@ public class MovableBox extends ProcessingAnimation {
     public void setHit(boolean hit, Rotater r) {
         this.hit = hit;
         this.hitBy = r;
-        if (hit == false) {
+        if (!hit) {
             this.width = initialWidth;
             this.height = initialHeight;
             this.getSound().setGain(0);
@@ -584,7 +581,7 @@ public class MovableBox extends ProcessingAnimation {
 
     public void deleteThis() {
         System.out.println("flagging a node to be deleted on next cycle");
-        if (getChild() != null) {
+        if (getChild() != null && getParent() != null) {
             System.out.println(" parent x " + getParent().getxLocation() + " this x " + getxLocation() + " child location " + getChild().getxLocation());
             getParent().forceSetChild(getChild());
             getChild().setParent(getParent());
@@ -605,7 +602,10 @@ public class MovableBox extends ProcessingAnimation {
                 }
 
             } else {
-
+                //deeleting a head node?
+                if (getChild() != null) {
+                    getChild().setParent(null);
+                }
             }
         }
 

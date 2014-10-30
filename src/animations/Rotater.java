@@ -29,11 +29,14 @@ public class Rotater extends ProcessingAnimation{
     float yOrigin = 0;
 
     SpeedSlider slider;
+
+    private final double initialSpeed;
     public Rotater(PApplet p, PublicInformation info, double SPEED) {
         super(p, info);
         this.speed = SPEED;
         this.setFill(Color.green);
         this.slider = new SpeedSlider(p, info, 0,0, SPEED);
+        initialSpeed = SPEED;
 
     }
 
@@ -135,9 +138,9 @@ public class Rotater extends ProcessingAnimation{
         getSlider().setxLocation(x);
 
         if (y < p.getHeight()/2) {
-            getSlider().setyLocation(y - getLength() - 60);
+            getSlider().setyLocation(y - getLength() - 50 * info.getRatio());
         } else {
-            getSlider().setyLocation(y + getLength() + 50);
+            getSlider().setyLocation(y + getLength() + 40 * info.getRatio());
         }
     }
 
@@ -166,5 +169,9 @@ public class Rotater extends ProcessingAnimation{
         Point2D.Float point = new Point2D.Float(x,y);
 
         return point;
+    }
+
+    public double getInitialSpeed() {
+        return initialSpeed;
     }
 }

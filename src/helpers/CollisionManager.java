@@ -1,7 +1,6 @@
 package helpers;
 
 import animations.MovableBox;
-import animations.ProcessingAnimation;
 import animations.Rotater;
 
 import java.awt.*;
@@ -15,7 +14,7 @@ import java.awt.geom.Rectangle2D;
 public class CollisionManager {
 
     public static final int CUSHION = 10;
-    public static boolean isLineInsideCircle(float l1x, float l1y, float l2x, float l2y, float p1x, float p1y, int circleRadius) {
+    public static boolean isLineInsideCircle(float l1x, float l1y, float l2x, float l2y, float p1x, float p1y, float circleRadius) {
         //y = mx + b
         float gradientLine = Float.MAX_VALUE;
         if (l2x - l1x !=0) {
@@ -30,11 +29,7 @@ public class CollisionManager {
         //float distance = (float) (Math.abs(p1y - gradientLine*p1x - b) / Math.sqrt(Math.pow(gradientLine,2) + 1));
         double distance = Line2D.ptSegDist(l1x,l1y,l2x,l2y,p1x,p1y);
 
-        if (distance - circleRadius/2 < CUSHION) {
-            return true;
-        } else {
-            return false;
-        }
+        return distance - circleRadius / 2 < CUSHION;
     }
 
     /**
@@ -71,10 +66,6 @@ public class CollisionManager {
         int xdistance = (int) Math.pow(point.getxLocation() - circle.getxOrigin(), 2);
         int ydistance = (int) Math.pow(point.getyLocation() - circle.getyOrigin(), 2);
         int radius = (int) Math.pow(circle.getLength(), 2);
-        if ( (xdistance + ydistance) < radius ) {
-            return true;
-        } else {
-            return false;
-        }
+        return (xdistance + ydistance) < radius;
     }
 }

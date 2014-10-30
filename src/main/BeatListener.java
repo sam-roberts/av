@@ -2,7 +2,6 @@ package main;
 
 import ddf.minim.AudioInput;
 import ddf.minim.AudioListener;
-import ddf.minim.AudioPlayer;
 import ddf.minim.analysis.BeatDetect;
 
 /**

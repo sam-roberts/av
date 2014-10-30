@@ -10,7 +10,7 @@ import java.awt.*;
  */
 public class SliderBox extends MovableBox {
 
-    public SliderBox(PApplet p, PublicInformation info, float xLocation, float yLocation, int width, int height) {
+    public SliderBox(PApplet p, PublicInformation info, float xLocation, float yLocation, float width, float height) {
         super(p, info, xLocation, yLocation, width, height);
         setLockXMovement(true);
         setInitialFill(Color.GRAY);
