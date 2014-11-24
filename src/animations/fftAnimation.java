@@ -56,7 +56,7 @@ public class fftAnimation extends ProcessingAnimation {
                 }
 
 
-                int opacity = (int) p.map(totalStrength, 0, thisMax, 0 ,35);
+                int opacity = (int) p.map(totalStrength, 0, thisMax, 0 ,60);
 
                 float size = p.map(totalStrength, 0, thisMax, 200, 2048);
                 p.tint(getFill().getRGB(), opacity);

@@ -33,10 +33,9 @@ public class SampleLibrary {
         generatePresetTwo(rotors);
         generatePresetThree(rotors);
         generatePresetFour(rotors);
-        generatePresetOne(rotors);
-        generatePresetOne(rotors);
-        generatePresetOne(rotors);
-        generatePresetOne(rotors);
+        generatePresetFive(rotors);
+        generatePresetSix(rotors);
+
 
 
     }
@@ -149,23 +148,51 @@ public class SampleLibrary {
         libraries.add(library1);
 
         int whichRotor = RotatePlayers.BOTTOM_RIGHT;
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "bass/sub_f.wav",25, 100);
-        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 87.5f , 100);
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/reverb_clap.wav",37.5f, 100);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/tabla_1.wav",0, 80);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 25 , 80);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 31.25f , 40);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 37.5f , 70);
 
         whichRotor = RotatePlayers.BOTTOM_LEFT;
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "bass/sub_f3.wav",100 - (100/16.0f), 60);
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "bass/sub_d.wav",75, 90);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 87.5f , 70);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "layers/guitar_strum_c_sharp.wav",6.25f, 90);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "layers/guitar_strum_d.wav",56.25f, 90);
+
 
 
 
         whichRotor = RotatePlayers.TOP_LEFT;
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/808_open_hat.wav",50, 60);
-        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/closed_hihat1.wav",25, 85);
-        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 50, 100);
-        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 75, 100);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/perc_triple.wav",25, 90);
+
         whichRotor = RotatePlayers.TOP_RIGHT;
-        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 25, 100);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/closed_hihat1.wav",0, 30);
+
+        whichRotor = RotatePlayers.BOTTOM_RIGHT;
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/tabla_2.wav",12.5f, 80);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 62.5f , 80);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 75 , 80);
+
+
+
+    }
+
+    private void generatePresetSix(RotatePlayers rotors) throws FileNotFoundException {
+
+
+        ArrayList<MovableBox> library1 = new ArrayList<MovableBox>();
+        libraries.add(library1);
+
+        int whichRotor = RotatePlayers.BOTTOM_RIGHT;
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "bass/kick1.wav",0, 100);
+        clonePreviousToLibrary(library1, rotors.getRotators().get(whichRotor), 12.5f , 100);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "layers/dark_chord.wav",0, 80);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "ambient/whurr.wav",25, 90);
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "percussion/reverb_clap.wav",50, 100);
+
+
+        whichRotor = RotatePlayers.BOTTOM_LEFT;
+        addToLibrary(library1, rotors.getRotators().get(whichRotor), "ambient/altered_course_sample.wav",0, 100);
+
 
 
     }

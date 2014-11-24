@@ -19,26 +19,26 @@ public class RotatePlayers {
     public static int TOP_RIGHT = 3;
 
 
-    private static final int DIVIDE_FACTOR = 7;
+    private static final int DIVIDE_FACTOR = 8;
 
     public RotatePlayers(PApplet p, PublicInformation info) {
         rotators = new ArrayList<Rotater>();
         Rotater one = new Rotater(p, info, Duration.HALF);
         one.setLength(p.getWidth()/DIVIDE_FACTOR);
-        one.setOrigin(p.getWidth()/2 - (one.getLength() * 1.40f), p.getHeight()/2+one.getLength()/2);
+        one.setOrigin(p.getWidth()/2 - (one.getLength() * 1.40f), p.getHeight()/2+one.getLength()/2.5f);
 
         Rotater quarter = new Rotater(p, info, Duration.QUARTER);
         quarter.setLength(p.getWidth()/DIVIDE_FACTOR);
-        quarter.setOrigin(p.getWidth()/2 + (quarter.getLength() * 1.40f), p.getHeight()/2+quarter.getLength()/2);
+        quarter.setOrigin(p.getWidth()/2 + (quarter.getLength() * 1.40f), p.getHeight()/2+quarter.getLength()/2.5f);
 
 
         Rotater two = new Rotater(p, info, Duration.EIGHTH);
         two.setLength(p.getWidth()/13);
-        two.setOrigin(p.getWidth()/2- (two.getLength() * 1.40f), two.getLength() * 1.8f);
+        two.setOrigin(p.getWidth()/2- (two.getLength() * 1.40f), two.getLength() * 1.6f);
 
         Rotater sixteenth = new Rotater(p, info, Duration.SIXTEENTH);
         sixteenth.setLength(p.getWidth()/13);
-        sixteenth.setOrigin(p.getWidth()/2+ (sixteenth.getLength() * 1.40f),sixteenth.getLength() * 1.8f);
+        sixteenth.setOrigin(p.getWidth()/2+ (sixteenth.getLength() * 1.40f),sixteenth.getLength() * 1.6f);
 
         rotators.add(one);
         rotators.add(quarter);

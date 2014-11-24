@@ -118,8 +118,8 @@ public class SpeedSlider extends ProcessingAnimation {
         return xLocation;
     }
 
-    public int getOffset() {
-        return totalWidth/2;
+    public float getOffset() {
+        return (totalWidth * info.getRatio()) /2;
     }
 
     public void setxLocation(float xLocation) {
@@ -150,7 +150,7 @@ public class SpeedSlider extends ProcessingAnimation {
             returnValue = endPoint;
         } else {
             float n = roundToNearest(distance, segment  * info.getRatio());
-            newPosition = (int) (n/segment * info.getRatio());
+            newPosition = (int) (n/(segment * info.getRatio()));
             if (newPosition > numSettings - 1) {
                 newPosition = 0;
             }
@@ -165,6 +165,8 @@ public class SpeedSlider extends ProcessingAnimation {
             hasClicked = true;
 
         }
+
+        System.out.println("closest x position is " + newPosition);
 
         return returnValue;
 

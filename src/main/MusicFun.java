@@ -6,7 +6,6 @@ import ddf.minim.AudioOutput;
 import ddf.minim.AudioRecorder;
 import ddf.minim.Minim;
 import ddf.minim.analysis.FFT;
-import geomerative.RG;
 import helpers.*;
 import processing.core.PApplet;
 import processing.core.PFont;
@@ -100,13 +99,13 @@ public class MusicFun extends PApplet {
 
             System.out.println("directory: " + System.getProperty("user.dir"));
 
-            DATA_PATH = System.getProperty("user.dir") + "/data/";
+            //DATA_PATH = System.getProperty("user.dir") + "/data/";
 
 
             minim = new Minim(this);
 
-            size(displayWidth, displayHeight, P3D);
-            SIZE_RATIO = displayWidth/1920f;
+            size(1824, 1026, P3D);
+            SIZE_RATIO = getWidth()/1920f;
             background(255);
             noStroke();
 
@@ -125,8 +124,7 @@ public class MusicFun extends PApplet {
             PImage circle = loadImage(info.getRootDirectory() + "images/soft_shadow.png");
             info.setCircle(circle);
 
-            RG.init(this);
-            smooth(8);
+            smooth(4);
             //RG.ignoreStyles();
 
 
@@ -688,7 +686,7 @@ public class MusicFun extends PApplet {
     private void tempoUp() {
         if (info.getTempo() < info.TEMPO_MAX) {
             int oldTempo = info.getTempo();
-            info.setTempo(oldTempo + 10);
+            info.setTempo(oldTempo + 5);
             updateActiveDelays();
         }
 
@@ -714,7 +712,7 @@ public class MusicFun extends PApplet {
     private void tempoDown() {
         if (info.getTempo() > info.TEMPO_MIN) {
             int oldTempo = info.getTempo();
-            info.setTempo(oldTempo - 10);
+            info.setTempo(oldTempo - 5);
             updateActiveDelays();
 
         }

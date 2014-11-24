@@ -1,6 +1,5 @@
 package animations;
 
-import geomerative.RShape;
 import helpers.PublicInformation;
 import helpers.Sample;
 import processing.core.PApplet;
@@ -86,7 +85,6 @@ public class MovableBox extends ProcessingAnimation {
     private float initialSpawnX;
     private float initialSpawnY;
 
-    RShape graphic;
     PShape graphic2;
 
 
@@ -115,7 +113,6 @@ public class MovableBox extends ProcessingAnimation {
         original = true;
         circleShape = true;
         toDelete = false;
-        graphic = null;
 
 
 
